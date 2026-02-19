@@ -25,9 +25,9 @@ public class RestServer {
         EntityTransaction tx = manager.getTransaction();
         tx.begin();
 
-        Client c = new Client();
+        /*Client c = new Client();
         c.setName("Test Marketing");
-        manager.persist(c);
+        manager.persist(c);*/
         manager.getTransaction().commit();
 
         UndertowJaxrsServer ut = new UndertowJaxrsServer();

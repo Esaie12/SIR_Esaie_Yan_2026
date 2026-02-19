@@ -2,6 +2,7 @@ package fr.istic.taa.jaxrs;
 
 import fr.istic.taa.jaxrs.dao.generic.EntityManagerHelper;
 import fr.istic.taa.jaxrs.entity.Client;
+import fr.istic.taa.jaxrs.entity.Groupe;
 import io.undertow.Undertow;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
@@ -26,8 +27,11 @@ public class RestServer {
         tx.begin();
 
         Client c = new Client();
+        Groupe g = new Groupe();
+        g.setName("Marketing VIP");
         c.setName("Test Marketing");
         manager.persist(c);
+        manager.persist(g);
         manager.getTransaction().commit();
 
         UndertowJaxrsServer ut = new UndertowJaxrsServer();

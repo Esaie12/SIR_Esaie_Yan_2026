@@ -1,9 +1,6 @@
 package fr.istic.taa.jaxrs.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import java.io.Serializable;
 
@@ -17,6 +14,9 @@ public class Client implements Serializable {
     private String name;
     private String email;
 
+    @ManyToOne
+    private Groupe groupe;
+
     // Constructeur vide obligatoire pour JPA
     public Client() {}
 
@@ -27,4 +27,6 @@ public class Client implements Serializable {
     public void setName(String name) { this.name = name; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+    public Groupe getGroupe() { return groupe; }
+    public void setGroupe(Groupe groupe) { this.groupe = groupe; }
 }

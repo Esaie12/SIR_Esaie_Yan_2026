@@ -3,6 +3,8 @@ package fr.istic.taa.jaxrs.entity;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Client implements Serializable {
@@ -14,8 +16,8 @@ public class Client implements Serializable {
     private String name;
     private String email;
 
-    @ManyToOne
-    private Groupe groupe;
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ClientGroupe> clientGroupes = new ArrayList<>();
 
     // Constructeur vide obligatoire pour JPA
     public Client() {}
@@ -27,6 +29,10 @@ public class Client implements Serializable {
     public void setName(String name) { this.name = name; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
-    public Groupe getGroupe() { return groupe; }
-    public void setGroupe(Groupe groupe) { this.groupe = groupe; }
+    public List<ClientGroupe> getClientGroupes() {
+        return clientGroupes;
+    }
+    public void setClientGroupes(List<ClientGroupe> clientGroupes) {
+        this.clientGroupes = clientGroupes;
+    }
 }

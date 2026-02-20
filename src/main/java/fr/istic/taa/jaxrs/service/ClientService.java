@@ -1,6 +1,7 @@
 package fr.istic.taa.jaxrs.service;
 
 import fr.istic.taa.jaxrs.dao.generic.EntityManagerHelper;
+import fr.istic.taa.jaxrs.dao.generic.classic.ClientDAO;
 import fr.istic.taa.jaxrs.entity.Client;
 import fr.istic.taa.jaxrs.entity.Groupe;
 import jakarta.persistence.EntityManager;
@@ -8,23 +9,25 @@ import jakarta.persistence.EntityTransaction;
 
 import java.util.List;
 
-public class ClientService {
+public class ClientService  {
 
-    public void createClientInGroupe(String clientName, Long groupeId) {
-        EntityManager em = EntityManagerHelper.getEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        tx.begin();
+    private ClientDAO clientDAO = new  ClientDAO();
 
-        Groupe g = em.find(Groupe.class, groupeId);
-        Client c = new Client();
-        c.setName(clientName);
-        c.setGroupe(g);
+        public Client findUser(Long id) {
+            return clientDAO.findOne(id);
+        }
 
-        em.persist(c);
-        tx.commit();
-    }
+        public List<Client> findAllUsers() {
+            return clientDAO.findAll();
+        }
 
-    public List<Client> getAllClients() {
-        return EntityManagerHelper.getEntityManager().createQuery("select c from Client c", Client.class).getResultList();
-    }
+        public Client createUser(Client client) {
+            // logique métier éventuelle
+            return clientDAO.update(client);
+        }
+
+        public void deleteUser(Long id) {
+            clientDAO.deleteById(id);
+        }
+
 }

@@ -15,8 +15,8 @@ public class Groupe implements Serializable {
 
     private String name;
 
-    @OneToMany(mappedBy = "groupe", cascade = CascadeType.ALL)   //un groupe contient plusieurs clients
-    private List<Client> clients = new ArrayList<>();
+    @OneToMany(mappedBy = "groupe", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ClientGroupe> clientGroupes = new ArrayList<>();
 
     public Groupe() {}
 
@@ -27,7 +27,6 @@ public class Groupe implements Serializable {
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
-    public List<Client> getClients() { return clients; }
-    public void setClients(List<Client> clients) { this.clients = clients; }
+
 
 }

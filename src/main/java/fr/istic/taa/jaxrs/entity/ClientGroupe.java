@@ -1,6 +1,5 @@
 package fr.istic.taa.jaxrs.entity;
 
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -31,4 +30,15 @@ public class ClientGroupe implements Serializable {
     }
 
     // Getters & Setters
+    public ClientGroupeId getId() { return id; }
+    public void setId(ClientGroupeId id) { this.id = id; }
+
+    public Client getClient() { return client; }
+    public void setClient(Client client) { this.client = client; }
+
+    public Groupe getGroupe() { return groupe; }
+    public void setGroupe(Groupe groupe) { this.groupe = groupe; }
+
+    public LocalDateTime getDateAdd() { return dateAdd; }
+    public void setDateAdd(LocalDateTime dateAdd) { this.dateAdd = dateAdd; }
 }

@@ -13,9 +13,7 @@
 				value="jdbc:hsqldb:hsql://localhost/" />
 			<property name="jakarta.persistence.jdbc.user" value="sa" />
 			<property name="jakarta.persistence.jdbc.password" value="" />
-			<property
-				name="jakarta.persistence.schema-generation.database.action"
-				value="create" />
+            <property name="hibernate.hbm2ddl.auto" value="update" />
 			<property name="jakarta.persistence.dialect"
 				value="org.hibernate.dialect.HSQLDialect" />
 			<property name="hibernate.show_sql" value="true" />

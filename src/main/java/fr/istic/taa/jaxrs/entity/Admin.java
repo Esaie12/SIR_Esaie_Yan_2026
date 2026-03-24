@@ -26,5 +26,4 @@ public class Admin  extends Account{
 		this.pseudo = pseudo;
 	}
 	
-	
 }

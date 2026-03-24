@@ -35,4 +35,9 @@ public class ApiResponse<T> {
     public int getStatus()      { return status; }
     public String getMessage()  { return message; }
     public T getData()          { return data; }
+
+	public static Object error(String string) {
+		// TODO Auto-generated method stub
+		return string;
+	}
 }

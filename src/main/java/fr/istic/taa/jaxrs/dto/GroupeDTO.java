@@ -9,6 +9,7 @@ public class GroupeDTO {
 
     private Long id;
     private String libelle;
+    private Long userId;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
@@ -18,11 +19,12 @@ public class GroupeDTO {
 
     public GroupeDTO() {}
 
-    public GroupeDTO(Long id, String libelle, LocalDateTime dateCreate, String color) {
+    public GroupeDTO(Long id, String libelle, LocalDateTime dateCreate, String color, Long userId) {
         this.id = id;
         this.libelle = libelle;
         this.dateCreate = dateCreate;
         this.color = color;
+        this.userId = userId;
     }
 
     public Long getId() { return id; }
@@ -36,4 +38,7 @@ public class GroupeDTO {
 
     public String getColor() { return color; }
     public void setColor(String color) { this.color = color; }
+    
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
 }

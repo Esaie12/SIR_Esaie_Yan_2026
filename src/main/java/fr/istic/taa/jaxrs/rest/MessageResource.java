@@ -5,6 +5,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.List;
 
 import fr.istic.taa.jaxrs.dto.ApiResponse;
+import fr.istic.taa.jaxrs.dto.GroupeDTO;
 import fr.istic.taa.jaxrs.dto.MessageDTO;
 import fr.istic.taa.jaxrs.service.MessageService;
 import jakarta.ws.rs.*;
@@ -49,6 +50,17 @@ public class MessageResource {
                     .entity(ApiResponse.error(e.getMessage()))
                     .build();
         }
+    }
+    
+    // ─── PUT /messages/{id} ───────────────────────────────────────────────────
+    @PUT
+    @Path("/{id}")
+    public Response updateMessage(@PathParam("id") Long id, MessageDTO dto) {
+    	MessageDTO updated = messageService.updateMessage(id, dto);
+        if (updated == null)
+            return Response.status(404)
+                    .entity(ApiResponse.notFound("Message introuvable")).build();
+        return Response.ok(ApiResponse.ok(updated)).build();
     }
 
     // ─── DELETE /messages/{id} ───────────────────────────────────────────────

@@ -1,5 +1,6 @@
 package fr.istic.taa.jaxrs.service;
 
+import fr.istic.taa.jaxrs.dao.generic.classic.AccountDAO;
 import fr.istic.taa.jaxrs.dao.generic.classic.ClientDAO;
 import fr.istic.taa.jaxrs.dao.generic.classic.GroupeDAO;
 import fr.istic.taa.jaxrs.dto.ClientDTO;
@@ -7,6 +8,7 @@ import fr.istic.taa.jaxrs.dto.ClientGroupeDTO;
 import fr.istic.taa.jaxrs.entity.Client;
 import fr.istic.taa.jaxrs.entity.ClientGroupe;
 import fr.istic.taa.jaxrs.entity.Groupe;
+import fr.istic.taa.jaxrs.entity.Users;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,7 +17,8 @@ public class ClientService {
 
     private final ClientDAO clientDAO = new ClientDAO();
     private final GroupeDAO groupeDAO = new GroupeDAO();
-
+    private final AccountDAO accountDAO = new AccountDAO();
+    
     // ─── Mapping entité → DTO ───────────────────────────────────────────────
 
     public ClientDTO toDTO(Client client) {
@@ -27,7 +30,8 @@ public class ClientService {
                 client.getPhone(),
                 client.getLocalisation(),
                 client.getCountry(),
-                client.getSexe()
+                client.getSexe(),
+                client.getUser() != null ? client.getUser().getId() : null
         );
     }
 
@@ -56,12 +60,39 @@ public class ClientService {
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
+    
+    public List<ClientDTO> getClientsByUser(Long userId) {
+        return clientDAO.findByUserId(userId)
+                .stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
 
     /** Crée ou met à jour un client à partir d'un DTO. */
     public ClientDTO createUser(ClientDTO dto) {
+    	
+    	Users user = accountDAO.findUserById(dto.getUserId());
+        if (user == null) throw new RuntimeException("Utilisateur introuvable");
+
+        Client client = new Client();
+        client.setName(dto.getName());
+        client.setEmail(dto.getEmail());
+        client.setPhone(dto.getPhone());
+        client.setLocalisation(dto.getLocalisation());
+        client.setCountry(dto.getCountry());
+        client.setSexe(dto.getSexe());
+
+        // 🔥 relation
+        client.setUser(user);
+
+        Client saved = clientDAO.update(client);
+        return toDTO(saved);
+        
+        /*
         Client client = toEntity(dto);
         Client saved = clientDAO.update(client);
         return toDTO(saved);
+        */
     }
 
     /** Met à jour un client existant. */

@@ -47,6 +47,23 @@ public class Users extends Account {
 	}
 	
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Client> clients = new ArrayList<>();
+	
+	public List<Client> getClients() {
+	    return clients;
+	}
+	
+	public void addClient(Client client) {
+	    clients.add(client);
+	    client.setUser(this);
+	}
+
+	public void removeClient(Client client) {
+	    clients.remove(client);
+	    client.setUser(null);
+	}
+	
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Message> messages = new ArrayList<>();
 
 	public List<Message> getMessages() {
@@ -67,4 +84,21 @@ public class Users extends Account {
 	    message.setUser(null);
 	}
 	
+	
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Groupe> groupes = new ArrayList<>();
+
+	public List<Groupe> getGroupes() {
+	    return groupes;
+	}
+
+	public void addGroupe(Groupe groupe) {
+	    groupes.add(groupe);
+	    groupe.setUser(this);
+	}
+
+	public void removeGroupe(Groupe groupe) {
+	    groupes.remove(groupe);
+	    groupe.setUser(null);
+	}
 }

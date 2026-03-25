@@ -11,6 +11,14 @@ public class ClientDAO extends AbstractJpaDao<Long, Client> {
     public ClientDAO() {
         setClazz(Client.class);
     }
+    
+    public List<Client> findByUserId(Long userId) {
+        return entityManager.createQuery(
+                "SELECT c FROM Client c WHERE c.user.id = :userId",
+                Client.class)
+                .setParameter("userId", userId)
+                .getResultList();
+    }
 
     /**
      * Recherche tous les clients appartenant à un groupe.

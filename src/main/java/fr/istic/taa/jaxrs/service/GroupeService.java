@@ -1,8 +1,10 @@
 package fr.istic.taa.jaxrs.service;
 
+import fr.istic.taa.jaxrs.dao.generic.classic.AccountDAO;
 import fr.istic.taa.jaxrs.dao.generic.classic.GroupeDAO;
 import fr.istic.taa.jaxrs.dto.GroupeDTO;
 import fr.istic.taa.jaxrs.entity.Groupe;
+import fr.istic.taa.jaxrs.entity.Users;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,6 +13,7 @@ import java.util.stream.Collectors;
 public class GroupeService {
 
     private final GroupeDAO groupeDAO = new GroupeDAO();
+    private final AccountDAO accountDAO = new AccountDAO();
 
     public GroupeDTO toDTO(Groupe groupe) {
         if (groupe == null) return null;
@@ -18,7 +21,8 @@ public class GroupeService {
                 groupe.getId(),
                 groupe.getLibelle(),
                 groupe.getDateCreate(),
-                groupe.getColor()
+                groupe.getColor(),
+                groupe.getUser().getId()
         );
     }
 
@@ -41,9 +45,29 @@ public class GroupeService {
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
+    
+    public List<GroupeDTO> getGroupesByUser(Long userId) {
+        Users user = accountDAO.findUserById(userId);
+        if (user == null) throw new RuntimeException("Utilisateur introuvable");
+
+        return user.getGroupes().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
 
     public GroupeDTO createGroupe(GroupeDTO dto) {
+    	
+    	Users user = accountDAO.findUserById(dto.getUserId());
+        if (user == null) throw new RuntimeException("Utilisateur introuvable");
+
+        /*
         Groupe groupe = toEntity(dto);
+        Groupe saved = groupeDAO.update(groupe);*/
+        
+        Groupe groupe = new Groupe();
+        groupe.setLibelle(dto.getLibelle());
+        groupe.setUser(user); // relation bidirectionnelle possible : user.addGroupe(groupe)
+
         Groupe saved = groupeDAO.update(groupe);
         return toDTO(saved);
     }

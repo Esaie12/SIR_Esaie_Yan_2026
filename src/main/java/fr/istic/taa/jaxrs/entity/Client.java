@@ -19,6 +19,11 @@ public class Client implements Serializable {
     private String country;
     private String sexe;
 
+ // Relation ManyToOne vers Users (Moral ou Physique)
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
+
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ClientGroupe> clientGroupes = new ArrayList<>();
 
@@ -48,4 +53,13 @@ public class Client implements Serializable {
 
     public List<ClientGroupe> getClientGroupes() { return clientGroupes; }
     public void setClientGroupes(List<ClientGroupe> clientGroupes) { this.clientGroupes = clientGroupes; }
+    
+    public Users getUser() {
+        return user;
+    }
+
+    public void setUser(Users user) {
+        this.user = user;
+    }
+    
 }

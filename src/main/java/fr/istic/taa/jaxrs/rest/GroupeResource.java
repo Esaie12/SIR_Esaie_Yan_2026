@@ -44,6 +44,17 @@ public class GroupeResource {
         return Response.status(201)
                 .entity(ApiResponse.created(created)).build();
     }
+    
+    @GET
+    @Path("/by-user/{userId}")
+    public Response getGroupesOfUser(@PathParam("userId") Long userId) {
+        try {
+            return Response.ok(ApiResponse.ok(groupeService.getGroupesByUser(userId))).build();
+        } catch (RuntimeException e) {
+            return Response.status(404)
+                    .entity(ApiResponse.notFound(e.getMessage())).build();
+        }
+    }
 
     // ─── PUT /groupes/{id} ───────────────────────────────────────────────────
     @PUT

@@ -57,6 +57,20 @@ public class ClientResource {
         return Response.status(201)
                 .entity(ApiResponse.created(created)).build();
     }
+    
+    
+    @GET
+    @Path("/by-user/{userId}")
+    public Response getClientsOfUser(@PathParam("userId") Long userId) {
+        try {
+            List<ClientDTO> clients = clientService.getClientsByUser(userId);
+            return Response.ok(ApiResponse.ok(clients)).build();
+        } catch (RuntimeException e) {
+            return Response.status(404)
+                           .entity(ApiResponse.notFound(e.getMessage()))
+                           .build();
+        }
+    }
 
     // ─── PUT /clients/{id} ───────────────────────────────────────────────────
     @PUT

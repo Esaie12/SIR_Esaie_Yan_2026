@@ -53,7 +53,8 @@ public class MessageDTO  {
 	}
 
 	public void setDateSend(LocalDateTime dateSend) {
-		this.dateSend = dateSend;
+		//this.dateSend = dateSend;
+		this.dateSend = (dateSend != null) ? dateSend : LocalDateTime.now();
 	}
 
 	public Long getUserId() {

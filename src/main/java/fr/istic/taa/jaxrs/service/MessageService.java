@@ -5,7 +5,9 @@ import java.util.stream.Collectors;
 
 import fr.istic.taa.jaxrs.dao.generic.classic.AccountDAO;
 import fr.istic.taa.jaxrs.dao.generic.classic.MessageDAO;
+import fr.istic.taa.jaxrs.dto.GroupeDTO;
 import fr.istic.taa.jaxrs.dto.MessageDTO;
+import fr.istic.taa.jaxrs.entity.Groupe;
 import fr.istic.taa.jaxrs.entity.Message;
 import fr.istic.taa.jaxrs.entity.Users;
 
@@ -42,4 +44,14 @@ public class MessageService {
     public void deleteMessage(Long id) {
         messageDAO.deleteById(id);
     }
+    
+    public MessageDTO updateMessage(Long id, MessageDTO dto) {
+    	Message existing = messageDAO.findOne(id);
+    	if (existing == null) return null;
+    	existing.setTitle(dto.getTitle());
+    	existing.setContent(dto.getContent());
+    	existing.setDateSend(dto.getDateSend());
+    	return toDTO(messageDAO.update(existing));
+    }
+    
 }

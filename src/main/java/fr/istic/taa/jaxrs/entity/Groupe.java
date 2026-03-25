@@ -17,6 +17,11 @@ public class Groupe implements Serializable {
     private LocalDateTime dateCreate;
     private String color;
 
+ // Relation ManyToOne vers Users
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
+    
     @OneToMany(mappedBy = "groupe", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ClientGroupe> clientGroupes = new ArrayList<>();
 
@@ -42,4 +47,7 @@ public class Groupe implements Serializable {
 
     public List<ClientGroupe> getClientGroupes() { return clientGroupes; }
     public void setClientGroupes(List<ClientGroupe> clientGroupes) { this.clientGroupes = clientGroupes; }
+    
+    public Users getUser() { return user; }
+    public void setUser(Users user) { this.user = user; }
 }

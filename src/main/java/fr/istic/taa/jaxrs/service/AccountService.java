@@ -22,7 +22,7 @@ public class AccountService {
         if (account == null) return null;
 
         AccountDTO dto = new AccountDTO();
-        //dto.setId(account.getId());
+        dto.setId(account.getId());
         dto.setEmail(account.getEmail());
         dto.setFirstname(account.getFirstname());
         dto.setLastname(account.getLastname());

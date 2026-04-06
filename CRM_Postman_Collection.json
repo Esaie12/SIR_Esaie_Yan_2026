@@ -1,0 +1,414 @@
+{
+  "info": {
+    "name": "CRM — Clients & Groupes",
+    "description": "Collection complète pour tester le backend JAX-RS (Clients, Groupes, Relations). Base URL : http://localhost:8080",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8080", "type": "string" },
+    { "key": "client_id",  "value": "1", "type": "string" },
+    { "key": "groupe_id",  "value": "1", "type": "string" }
+  ],
+  "item": [
+
+    {
+      "name": "👤 Clients",
+      "item": [
+
+        {
+          "name": "GET — Tous les clients",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/clients", "host": ["{{base_url}}"], "path": ["clients"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "GET — Client par ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/clients/{{client_id}}", "host": ["{{base_url}}"], "path": ["clients", "{{client_id}}"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "GET — Client par email (query param)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/clients?email=alice@example.com",
+              "host": ["{{base_url}}"],
+              "path": ["clients"],
+              "query": [{ "key": "email", "value": "alice@example.com" }]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "GET — Clients par pays (query param)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/clients?country=France",
+              "host": ["{{base_url}}"],
+              "path": ["clients"],
+              "query": [{ "key": "country", "value": "France" }]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "POST — Créer un client",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept",       "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Martin\",\n  \"email\": \"alice@example.com\",\n  \"phone\": \"0612345678\",\n  \"localisation\": \"Paris\",\n  \"country\": \"France\",\n  \"sexe\": \"F\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/clients", "host": ["{{base_url}}"], "path": ["clients"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "PUT — Modifier un client",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept",       "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Martin (modifié)\",\n  \"email\": \"alice.new@example.com\",\n  \"phone\": \"0699887766\",\n  \"localisation\": \"Lyon\",\n  \"country\": \"France\",\n  \"sexe\": \"F\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/clients/{{client_id}}", "host": ["{{base_url}}"], "path": ["clients", "{{client_id}}"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "DELETE — Supprimer un client",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{base_url}}/clients/{{client_id}}", "host": ["{{base_url}}"], "path": ["clients", "{{client_id}}"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "GET — Groupes d'un client",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/clients/{{client_id}}/groupes", "host": ["{{base_url}}"], "path": ["clients", "{{client_id}}", "groupes"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "POST — Ajouter client dans un groupe",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "" },
+            "url": {
+              "raw": "{{base_url}}/clients/{{client_id}}/groupes/{{groupe_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["clients", "{{client_id}}", "groupes", "{{groupe_id}}"]
+            }
+          },
+          "response": []
+        }
+
+      ]
+    },
+
+    {
+      "name": "🗂️ Groupes",
+      "item": [
+
+        {
+          "name": "GET — Tous les groupes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/groupes", "host": ["{{base_url}}"], "path": ["groupes"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "GET — Groupe par ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/groupes/{{groupe_id}}", "host": ["{{base_url}}"], "path": ["groupes", "{{groupe_id}}"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "POST — Créer un groupe",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept",       "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"libelle\": \"VIP\",\n  \"color\": \"#FFD700\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/groupes", "host": ["{{base_url}}"], "path": ["groupes"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "PUT — Modifier un groupe",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept",       "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"libelle\": \"VIP Platinum\",\n  \"color\": \"#C0C0C0\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/groupes/{{groupe_id}}", "host": ["{{base_url}}"], "path": ["groupes", "{{groupe_id}}"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "DELETE — Supprimer un groupe",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{base_url}}/groupes/{{groupe_id}}", "host": ["{{base_url}}"], "path": ["groupes", "{{groupe_id}}"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "GET — Clients d'un groupe",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/groupes/{{groupe_id}}/clients", "host": ["{{base_url}}"], "path": ["groupes", "{{groupe_id}}", "clients"] }
+          },
+          "response": []
+        }
+
+      ]
+    },
+
+    {
+      "name": "🔗 Scénarios enchaînés",
+      "item": [
+
+        {
+          "name": "SCENARIO 1 — Créer groupe puis client puis associer",
+          "item": [
+            {
+              "name": "1. Créer un groupe",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "var json = pm.response.json();",
+                    "pm.collectionVariables.set('groupe_id', json.id);",
+                    "pm.test('Groupe créé (201)', () => pm.response.to.have.status(201));",
+                    "pm.test('id présent', () => pm.expect(json.id).to.be.a('number'));"
+                  ]
+                }
+              }],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Accept",       "value": "application/json" }
+                ],
+                "body": { "mode": "raw", "raw": "{\n  \"libelle\": \"Premium\",\n  \"color\": \"#3498db\"\n}" },
+                "url": { "raw": "{{base_url}}/groupes", "host": ["{{base_url}}"], "path": ["groupes"] }
+              }
+            },
+            {
+              "name": "2. Créer un client",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "var json = pm.response.json();",
+                    "pm.collectionVariables.set('client_id', json.id);",
+                    "pm.test('Client créé (201)', () => pm.response.to.have.status(201));",
+                    "pm.test('id présent', () => pm.expect(json.id).to.be.a('number'));"
+                  ]
+                }
+              }],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Accept",       "value": "application/json" }
+                ],
+                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Bob Dupont\",\n  \"email\": \"bob@example.com\",\n  \"phone\": \"0611223344\",\n  \"localisation\": \"Marseille\",\n  \"country\": \"France\",\n  \"sexe\": \"M\"\n}" },
+                "url": { "raw": "{{base_url}}/clients", "host": ["{{base_url}}"], "path": ["clients"] }
+              }
+            },
+            {
+              "name": "3. Associer client au groupe",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test('Association créée (201)', () => pm.response.to.have.status(201));",
+                    "var json = pm.response.json();",
+                    "pm.test('clientId correct', () => pm.expect(json.clientId).to.eql(parseInt(pm.collectionVariables.get('client_id'))));",
+                    "pm.test('groupeId correct', () => pm.expect(json.groupeId).to.eql(parseInt(pm.collectionVariables.get('groupe_id'))));"
+                  ]
+                }
+              }],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": {
+                  "raw": "{{base_url}}/clients/{{client_id}}/groupes/{{groupe_id}}",
+                  "host": ["{{base_url}}"],
+                  "path": ["clients", "{{client_id}}", "groupes", "{{groupe_id}}"]
+                }
+              }
+            },
+            {
+              "name": "4. Vérifier groupes du client",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                    "var json = pm.response.json();",
+                    "pm.test('Au moins 1 groupe', () => pm.expect(json.length).to.be.at.least(1));"
+                  ]
+                }
+              }],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": {
+                  "raw": "{{base_url}}/clients/{{client_id}}/groupes",
+                  "host": ["{{base_url}}"],
+                  "path": ["clients", "{{client_id}}", "groupes"]
+                }
+              }
+            },
+            {
+              "name": "5. Vérifier clients du groupe",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                    "var json = pm.response.json();",
+                    "pm.test('Au moins 1 client', () => pm.expect(json.length).to.be.at.least(1));"
+                  ]
+                }
+              }],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": {
+                  "raw": "{{base_url}}/groupes/{{groupe_id}}/clients",
+                  "host": ["{{base_url}}"],
+                  "path": ["groupes", "{{groupe_id}}", "clients"]
+                }
+              }
+            }
+          ]
+        },
+
+        {
+          "name": "SCENARIO 2 — Cas d'erreur (404)",
+          "item": [
+            {
+              "name": "GET client inexistant → 404",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "exec": ["pm.test('404 attendu', () => pm.response.to.have.status(404));"]
+                }
+              }],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/clients/99999", "host": ["{{base_url}}"], "path": ["clients", "99999"] }
+              }
+            },
+            {
+              "name": "GET groupe inexistant → 404",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "exec": ["pm.test('404 attendu', () => pm.response.to.have.status(404));"]
+                }
+              }],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/groupes/99999", "host": ["{{base_url}}"], "path": ["groupes", "99999"] }
+              }
+            },
+            {
+              "name": "PUT client inexistant → 404",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "exec": ["pm.test('404 attendu', () => pm.response.to.have.status(404));"]
+                }
+              }],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Accept",       "value": "application/json" }
+                ],
+                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Fantôme\",\n  \"email\": \"ghost@example.com\",\n  \"phone\": \"0000000000\",\n  \"localisation\": \"Nulle Part\",\n  \"country\": \"Inconnu\",\n  \"sexe\": \"M\"\n}" },
+                "url": { "raw": "{{base_url}}/clients/99999", "host": ["{{base_url}}"], "path": ["clients", "99999"] }
+              }
+            },
+            {
+              "name": "POST association client/groupe inexistants → 404",
+              "event": [{
+                "listen": "test",
+                "script": {
+                  "exec": ["pm.test('404 attendu', () => pm.response.to.have.status(404));"]
+                }
+              }],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/clients/99999/groupes/99999", "host": ["{{base_url}}"], "path": ["clients", "99999", "groupes", "99999"] }
+              }
+            }
+          ]
+        }
+
+      ]
+    }
+
+  ]
+}

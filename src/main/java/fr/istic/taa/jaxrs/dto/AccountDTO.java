@@ -15,6 +15,7 @@ public class AccountDTO {
     public String pseudo;
     public String companyName;
     public String sexe;
+    public long id;
     
     public AccountDTO() {}
     
@@ -30,6 +31,13 @@ public class AccountDTO {
 		this.companyName = companyName;
 		this.sexe = sexe;
 		this.birthday = birthday;
+	}
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
 	}
 	public LocalDate birthday;
     

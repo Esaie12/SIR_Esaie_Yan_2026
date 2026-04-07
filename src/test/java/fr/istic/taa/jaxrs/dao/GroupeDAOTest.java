@@ -1,6 +1,6 @@
 package fr.istic.taa.jaxrs.dao;
 
-import fr.istic.taa.jaxrs.dao.generic.classic.GroupeDAO;
+import fr.istic.taa.jaxrs.dao.classic.GroupeDAO;
 import fr.istic.taa.jaxrs.entity.Groupe;
 import org.junit.After;
 import org.junit.Before;

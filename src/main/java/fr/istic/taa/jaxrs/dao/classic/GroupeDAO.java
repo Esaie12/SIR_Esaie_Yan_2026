@@ -1,6 +1,6 @@
-package fr.istic.taa.jaxrs.dao.generic.classic;
+package fr.istic.taa.jaxrs.dao.classic;
 
-import fr.istic.taa.jaxrs.dao.generic.AbstractJpaDao;
+import fr.istic.taa.jaxrs.dao.AbstractJpaDao;
 import fr.istic.taa.jaxrs.entity.Groupe;
 
 import java.util.List;

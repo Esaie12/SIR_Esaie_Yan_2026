@@ -1,7 +1,7 @@
 package fr.istic.taa.jaxrs.service;
 
-import fr.istic.taa.jaxrs.dao.generic.classic.ClientDAO;
-import fr.istic.taa.jaxrs.dao.generic.classic.GroupeDAO;
+import fr.istic.taa.jaxrs.dao.classic.ClientDAO;
+import fr.istic.taa.jaxrs.dao.classic.GroupeDAO;
 import fr.istic.taa.jaxrs.dto.ClientDTO;
 import fr.istic.taa.jaxrs.dto.ClientGroupeDTO;
 import fr.istic.taa.jaxrs.entity.Client;

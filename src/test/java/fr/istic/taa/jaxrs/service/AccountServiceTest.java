@@ -1,6 +1,6 @@
 package fr.istic.taa.jaxrs.service;
 
-import fr.istic.taa.jaxrs.dao.generic.classic.AccountDAO;
+import fr.istic.taa.jaxrs.dao.classic.AccountDAO;
 import fr.istic.taa.jaxrs.dto.AccountDTO;
 import fr.istic.taa.jaxrs.entity.Account;
 import org.junit.After;
@@ -49,7 +49,7 @@ public class AccountServiceTest {
 
         assertNotNull(created);
         assertEquals("admin@svctest.com", created.getEmail());
-        // ✅ toDTO() retourne maintenant "ADMIN" (majuscules) grâce à toUpperCase()
+        // toDTO() retourne maintenant "ADMIN" (majuscules) grâce à toUpperCase()
         assertEquals("ADMIN", created.getType());
     }
 
@@ -65,7 +65,7 @@ public class AccountServiceTest {
 
         AccountDTO created = accountService.createAccount(dto);
         assertNotNull(created);
-        // ✅ toDTO() retourne maintenant "MORAL" (majuscules)
+        // toDTO() retourne maintenant "MORAL" (majuscules)
         assertEquals("MORAL", created.getType());
     }
 
@@ -82,7 +82,7 @@ public class AccountServiceTest {
 
         AccountDTO created = accountService.createAccount(dto);
         assertNotNull(created);
-        // ✅ toDTO() retourne maintenant "PHYSIQUE" (majuscules)
+        // toDTO() retourne maintenant "PHYSIQUE" (majuscules)
         assertEquals("PHYSIQUE", created.getType());
     }
 

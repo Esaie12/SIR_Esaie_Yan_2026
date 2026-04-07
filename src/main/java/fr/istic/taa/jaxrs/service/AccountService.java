@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.istic.taa.jaxrs.dao.generic.classic.AccountDAO;
+import fr.istic.taa.jaxrs.dao.classic.AccountDAO;
 import fr.istic.taa.jaxrs.dto.AccountDTO;
 import fr.istic.taa.jaxrs.entity.Account;
 import fr.istic.taa.jaxrs.entity.Admin;

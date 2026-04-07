@@ -1,7 +1,7 @@
 package fr.istic.taa.jaxrs.dao;
 
-import fr.istic.taa.jaxrs.dao.generic.classic.AccountDAO;
-import fr.istic.taa.jaxrs.dao.generic.classic.MessageDAO;
+import fr.istic.taa.jaxrs.dao.classic.AccountDAO;
+import fr.istic.taa.jaxrs.dao.classic.MessageDAO;
 import fr.istic.taa.jaxrs.entity.Message;
 import fr.istic.taa.jaxrs.entity.Users;
 import org.junit.After;
@@ -154,7 +154,7 @@ public class MessageDAOTest {
 
     @Test
     public void testDeleteByUser() {
-        // ✅ CORRIGÉ : deleteByUser() gère maintenant sa propre transaction
+        // deleteByUser() gère sa propre transaction
         // car executeUpdate() requiert une transaction active (TransactionRequiredException)
         messageDAO.save(new Message("Del 1", "c", LocalDateTime.now(), testUser));
         messageDAO.save(new Message("Del 2", "c", LocalDateTime.now(), testUser));

@@ -21,52 +21,62 @@ import java.util.List;
 @Path("/messages")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Tag(name = "Messages", description = "Gestion des messages envoyés par les utilisateurs (Moral ou Physique)")
+@Tag(name = "Messages", description = "Gestion des messages — envoi à un utilisateur ou à un groupe entier")
 public class MessageResource {
 
     private final MessageService messageService = new MessageService();
 
     @GET
     @Operation(
-            summary     = "Lister les messages d'un utilisateur",
-            description = "Retourne tous les messages d'un utilisateur identifié par son userId, "
-                    + "triés par date d'envoi décroissante. Le paramètre userId est obligatoire."
+            summary     = "Lister les messages d'un utilisateur ou d'un groupe",
+            description = "Fournir userId OU groupeId (pas les deux). "
+                    + "Retourne les messages triés par date d'envoi décroissante."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200", description = "Liste des messages",
                     content = @Content(schema = @Schema(implementation = MessageDTO.class))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "400", description = "Paramètre userId manquant")
+                    responseCode = "400", description = "userId ou groupeId requis (pas les deux)")
     })
     public Response getMessages(
-            @Parameter(description = "ID de l'utilisateur (obligatoire)", required = true)
-            @QueryParam("userId") Long userId) {
+            @Parameter(description = "ID de l'utilisateur destinataire") @QueryParam("userId")   Long userId,
+            @Parameter(description = "ID du groupe destinataire")         @QueryParam("groupeId") Long groupeId) {
 
-        if (userId == null)
+        if (userId == null && groupeId == null)
             return Response.status(400)
-                    .entity(ApiResponse.error("userId requis")).build();
+                    .entity(ApiResponse.error("userId ou groupeId est requis")).build();
 
-        List<MessageDTO> list = messageService.getMessagesByUser(userId);
+        if (userId != null && groupeId != null)
+            return Response.status(400)
+                    .entity(ApiResponse.error("Fournir userId OU groupeId, pas les deux")).build();
+
+        if (userId != null) {
+            List<MessageDTO> list = messageService.getMessagesByUser(userId);
+            return Response.ok(ApiResponse.ok(list)).build();
+        }
+
+        List<MessageDTO> list = messageService.getMessagesByGroupe(groupeId);
         return Response.ok(ApiResponse.ok(list)).build();
     }
 
     @POST
     @Operation(
-            summary     = "Créer un nouveau message",
-            description = "Crée un message associé à un utilisateur existant (Moral ou Physique). "
-                    + "Le champ userId doit correspondre à un utilisateur valide en base."
+            summary     = "Envoyer un message",
+            description = "Envoie un message à un utilisateur (userId renseigné, groupeId null) "
+                    + "ou à un groupe entier (groupeId renseigné, userId null). "
+                    + "Les deux champs ne peuvent pas être renseignés simultanément."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "201", description = "Message créé avec succès",
+                    responseCode = "201", description = "Message envoyé",
                     content = @Content(schema = @Schema(implementation = MessageDTO.class))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "400", description = "Utilisateur introuvable ou données invalides")
+                    responseCode = "400", description = "Destinataire invalide ou manquant")
     })
     public Response createMessage(
             @RequestBody(
-                    description = "Données du message : title, content, dateSend, userId",
+                    description = "title, content, dateSend + userId OU groupeId",
                     required    = true,
                     content     = @Content(schema = @Schema(implementation = MessageDTO.class)))
             MessageDTO dto) {
@@ -80,10 +90,7 @@ public class MessageResource {
 
     @DELETE
     @Path("/{id}")
-    @Operation(
-            summary     = "Supprimer un message",
-            description = "Supprime définitivement le message identifié par son ID."
-    )
+    @Operation(summary = "Supprimer un message")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "204", description = "Message supprimé"),

@@ -11,6 +11,10 @@ import java.time.LocalDateTime;
                 query = "SELECT m FROM Message m WHERE m.user.id = :userId ORDER BY m.dateSend DESC"
         ),
         @NamedQuery(
+                name  = "Message.findByGroupe",
+                query = "SELECT m FROM Message m WHERE m.groupe.id = :groupeId ORDER BY m.dateSend DESC"
+        ),
+        @NamedQuery(
                 name  = "Message.findByTitle",
                 query = "SELECT m FROM Message m WHERE LOWER(m.title) LIKE LOWER(:keyword)"
         )
@@ -27,17 +31,34 @@ public class Message implements Serializable {
     @Column(name = "date_send")
     private LocalDateTime dateSend;
 
+    // Destinataire : soit un user direct (groupe = null),
+    //                soit un groupe entier (user = null)
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     private Users user;
+
+    @ManyToOne
+    @JoinColumn(name = "groupe_id", nullable = true)
+    private Groupe groupe;
 
     public Message() {}
 
+    // Constructeur envoi à un User
     public Message(String title, String content, LocalDateTime dateSend, Users user) {
-        this.title   = title;
-        this.content = content;
+        this.title    = title;
+        this.content  = content;
         this.dateSend = dateSend;
-        this.user    = user;
+        this.user     = user;
+        this.groupe   = null;
+    }
+
+    // Constructeur envoi à un Groupe
+    public Message(String title, String content, LocalDateTime dateSend, Groupe groupe) {
+        this.title    = title;
+        this.content  = content;
+        this.dateSend = dateSend;
+        this.groupe   = groupe;
+        this.user     = null;
     }
 
     public Long getId() { return id; }
@@ -54,4 +75,7 @@ public class Message implements Serializable {
 
     public Users getUser() { return user; }
     public void setUser(Users user) { this.user = user; }
+
+    public Groupe getGroupe() { return groupe; }
+    public void setGroupe(Groupe groupe) { this.groupe = groupe; }
 }

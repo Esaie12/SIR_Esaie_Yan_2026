@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.istic.taa.jaxrs.dao.classic.AccountDAO;
+import fr.istic.taa.jaxrs.dao.classic.GroupeDAO;
 import fr.istic.taa.jaxrs.dao.classic.MessageDAO;
 import fr.istic.taa.jaxrs.dto.MessageDTO;
+import fr.istic.taa.jaxrs.entity.Groupe;
 import fr.istic.taa.jaxrs.entity.Message;
 import fr.istic.taa.jaxrs.entity.Users;
 
@@ -13,6 +15,7 @@ public class MessageService {
 
     private final MessageDAO messageDAO = new MessageDAO();
     private final AccountDAO accountDAO = new AccountDAO();
+    private final GroupeDAO  groupeDAO  = new GroupeDAO();
 
     // ─── Mapping entité → DTO ───────────────────────────────────────────────
 
@@ -22,24 +25,58 @@ public class MessageService {
         dto.setTitle(message.getTitle());
         dto.setContent(message.getContent());
         dto.setDateSend(message.getDateSend());
-        dto.setUserId(message.getUser().getId());
+        // L'un des deux sera null selon le type de destinataire
+        dto.setUserId(message.getUser()   != null ? message.getUser().getId()   : null);
+        dto.setGroupeId(message.getGroupe() != null ? message.getGroupe().getId() : null);
         return dto;
     }
 
     // ─── CRUD ───────────────────────────────────────────────────────────────
 
+    /**
+     * Crée un message destiné à un User (groupeId null)
+     * ou à un Groupe entier (userId null).
+     * Les deux ne peuvent pas être null en même temps.
+     */
     public MessageDTO createMessage(MessageDTO dto) {
-        Users user = accountDAO.findUserById(dto.getUserId());
-        if (user == null) throw new RuntimeException("Utilisateur introuvable");
 
-        Message message = new Message(dto.getTitle(), dto.getContent(), dto.getDateSend(), user);
-        // save() → persist() : création propre sans ID
+        boolean hasUser   = dto.getUserId()   != null;
+        boolean hasGroupe = dto.getGroupeId() != null;
+
+        if (!hasUser && !hasGroupe) {
+            throw new RuntimeException("userId ou groupeId est obligatoire");
+        }
+        if (hasUser && hasGroupe) {
+            throw new RuntimeException("userId et groupeId ne peuvent pas être renseignés en même temps");
+        }
+
+        Message message;
+
+        if (hasUser) {
+            Users user = accountDAO.findUserById(dto.getUserId());
+            if (user == null) throw new RuntimeException("Utilisateur introuvable");
+            message = new Message(dto.getTitle(), dto.getContent(), dto.getDateSend(), user);
+        } else {
+            Groupe groupe = groupeDAO.findOne(dto.getGroupeId());
+            if (groupe == null) throw new RuntimeException("Groupe introuvable");
+            message = new Message(dto.getTitle(), dto.getContent(), dto.getDateSend(), groupe);
+        }
+
         messageDAO.save(message);
         return toDTO(message);
     }
 
     public List<MessageDTO> getMessagesByUser(Long userId) {
         List<Message> messages = messageDAO.findByUserId(userId);
+        List<MessageDTO> dtos = new ArrayList<>();
+        for (Message message : messages) {
+            dtos.add(toDTO(message));
+        }
+        return dtos;
+    }
+
+    public List<MessageDTO> getMessagesByGroupe(Long groupeId) {
+        List<Message> messages = messageDAO.findByGroupeId(groupeId);
         List<MessageDTO> dtos = new ArrayList<>();
         for (Message message : messages) {
             dtos.add(toDTO(message));

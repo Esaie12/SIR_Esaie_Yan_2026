@@ -2,6 +2,7 @@ package fr.istic.taa.jaxrs.dao.generic.classic;
 
 import fr.istic.taa.jaxrs.dao.generic.AbstractJpaDao;
 import fr.istic.taa.jaxrs.entity.Message;
+import jakarta.persistence.EntityTransaction;
 
 import java.util.List;
 
@@ -11,55 +12,40 @@ public class MessageDAO extends AbstractJpaDao<Long, Message> {
         setClazz(Message.class);
     }
 
-    /**
-     * Récupérer tous les messages d'un utilisateur (Moral ou Physique)
-     */
-    public List<Message> findByUser(Long userId) {
-        return entityManager.createQuery(
-                "SELECT m FROM Message m WHERE m.user.id = :userId ORDER BY m.dateSend DESC",
-                Message.class)
-            .setParameter("userId", userId)
-            .getResultList();
+    public List<Message> findByUserId(Long userId) {
+        return entityManager
+                .createNamedQuery("Message.findByUser", Message.class)
+                .setParameter("userId", userId)
+                .getResultList();
     }
 
-    /**
-     * Récupérer les messages récents
-     */
+    public List<Message> findByTitle(String keyword) {
+        return entityManager
+                .createNamedQuery("Message.findByTitle", Message.class)
+                .setParameter("keyword", "%" + keyword + "%")
+                .getResultList();
+    }
+
     public List<Message> findRecentMessages(int limit) {
         return entityManager.createQuery(
-                "SELECT m FROM Message m ORDER BY m.dateSend DESC",
-                Message.class)
-            .setMaxResults(limit)
-            .getResultList();
+                        "SELECT m FROM Message m ORDER BY m.dateSend DESC",
+                        Message.class)
+                .setMaxResults(limit)
+                .getResultList();
     }
 
     /**
-     * Rechercher par titre (LIKE)
-     */
-    public List<Message> findByTitle(String keyword) {
-        return entityManager.createQuery(
-                "SELECT m FROM Message m WHERE LOWER(m.title) LIKE LOWER(:keyword)",
-                Message.class)
-            .setParameter("keyword", "%" + keyword + "%")
-            .getResultList();
-    }
-
-    /**
-     * Supprimer tous les messages d'un utilisateur
+     * Transaction explicite obligatoire : executeUpdate() n'est pas
+     * couvert par les méthodes de AbstractJpaDao.
      */
     public int deleteByUser(Long userId) {
-        return entityManager.createQuery(
-                "DELETE FROM Message m WHERE m.user.id = :userId")
-            .setParameter("userId", userId)
-            .executeUpdate();
-    }
-    
-    
-    public List<Message> findByUserId(Long userId) {
-        return entityManager.createQuery(
-                "SELECT m FROM Message m WHERE m.user.id = :userId ORDER BY m.dateSend DESC",
-                Message.class)
-            .setParameter("userId", userId)
-            .getResultList();
+        EntityTransaction tx = entityManager.getTransaction();
+        tx.begin();
+        int deleted = entityManager.createQuery(
+                        "DELETE FROM Message m WHERE m.user.id = :userId")
+                .setParameter("userId", userId)
+                .executeUpdate();
+        tx.commit();
+        return deleted;
     }
 }

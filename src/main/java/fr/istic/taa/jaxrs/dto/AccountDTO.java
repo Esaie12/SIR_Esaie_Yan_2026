@@ -11,7 +11,6 @@ public class AccountDTO {
 
     public String type; // ADMIN, USER, MORAL, PHYSIQUE
 
-    // spécifique
     public String pseudo;
     public String companyName;
     public String sexe;

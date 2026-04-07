@@ -1,7 +1,5 @@
 package fr.istic.taa.jaxrs.dto;
 
-// Pour que tous les retours api soit de la meme forme
-
 public class ApiResponse<T> {
 
     private int status;
@@ -30,14 +28,11 @@ public class ApiResponse<T> {
         return new ApiResponse<>(204, "Delete", null);
     }
 
-    // ─── Get ────────────────────────────────────────────────────────────
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>(400, message, null);
+    }
 
     public int getStatus()      { return status; }
     public String getMessage()  { return message; }
     public T getData()          { return data; }
-
-	public static Object error(String string) {
-		// TODO Auto-generated method stub
-		return string;
-	}
 }

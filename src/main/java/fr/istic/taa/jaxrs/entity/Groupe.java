@@ -7,6 +7,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@NamedQueries({
+        @NamedQuery(
+                name  = "Groupe.findByLibelle",
+                query = "SELECT g FROM Groupe g WHERE LOWER(g.libelle) LIKE LOWER(:libelle)"
+        ),
+        @NamedQuery(
+                name  = "Groupe.findAll",
+                query = "SELECT g FROM Groupe g ORDER BY g.dateCreate DESC"
+        )
+})
 public class Groupe implements Serializable {
 
     @Id
@@ -32,7 +42,6 @@ public class Groupe implements Serializable {
         this.dateCreate = LocalDateTime.now();
     }
 
-    // Getters & Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

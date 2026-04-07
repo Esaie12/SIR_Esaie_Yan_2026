@@ -29,7 +29,6 @@ public class ClientGroupe implements Serializable {
         this.id = new ClientGroupeId(client.getId(), groupe.getId());
     }
 
-    // Getters & Setters
     public ClientGroupeId getId() { return id; }
     public void setId(ClientGroupeId id) { this.id = id; }
 

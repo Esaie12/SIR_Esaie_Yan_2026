@@ -17,8 +17,6 @@ public class ClientGroupeId implements Serializable {
         this.groupeId = groupeId;
     }
 
-    // equals() et hashCode() OBLIGATOIRES
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

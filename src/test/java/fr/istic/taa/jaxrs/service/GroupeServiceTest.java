@@ -1,9 +1,8 @@
 package fr.istic.taa.jaxrs.service;
 
-import fr.istic.taa.jaxrs.dao.generic.classic.AccountDAO;
-import fr.istic.taa.jaxrs.dao.generic.classic.GroupeDAO;
+import fr.istic.taa.jaxrs.dao.classic.AccountDAO;
+import fr.istic.taa.jaxrs.dao.classic.GroupeDAO;
 import fr.istic.taa.jaxrs.dto.GroupeDTO;
-import fr.istic.taa.jaxrs.dto.MessageDTO;
 import fr.istic.taa.jaxrs.entity.Groupe;
 import fr.istic.taa.jaxrs.entity.Users;
 import org.junit.After;
@@ -19,20 +18,42 @@ public class GroupeServiceTest {
 
     private GroupeService groupeService;
     private GroupeDAO groupeDAO;
+    private AccountDAO accountDAO;
     private Long groupeId;
+
+    // Variables pour l'utilisateur obligatoire
+    private Users testUser;
+    private Long testUserId;
 
     @Before
     public void setUp() {
         groupeService = new GroupeService();
         groupeDAO = new GroupeDAO();
+        accountDAO = new AccountDAO();
+
+        // Création et persistance de l'utilisateur obligatoire pour les tests
+        testUser = new Users("testgroupe@svctest.com", "password123", "Prenom", "Nom", true, LocalDateTime.now());
+        accountDAO.save(testUser);
+        testUserId = testUser.getId();
     }
 
     @After
     public void tearDown() {
+        // Nettoyage en cascade inversée : Groupe -> User
         if (groupeId != null) {
             Groupe g = groupeDAO.findOne(groupeId);
             if (g != null) groupeDAO.delete(g);
             groupeId = null;
+        }
+        if (testUserId != null) {
+            Users u = (Users) accountDAO.findOne(testUserId);
+            if (u != null) accountDAO.delete(u);
+            testUserId = null;
+        }
+
+        // Sécurité pour les transactions bloquées
+        if (accountDAO.getEntityManager().getTransaction().isActive()) {
+            accountDAO.getEntityManager().getTransaction().rollback();
         }
     }
 
@@ -40,6 +61,10 @@ public class GroupeServiceTest {
         GroupeDTO dto = new GroupeDTO();
         dto.setLibelle(libelle);
         dto.setColor(color);
+
+        // AJOUT CRUCIAL : Association de l'ID utilisateur généré
+        dto.setUserId(testUserId);
+
         return dto;
     }
 

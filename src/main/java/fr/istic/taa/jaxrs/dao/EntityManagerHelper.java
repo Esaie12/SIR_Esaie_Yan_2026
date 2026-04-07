@@ -1,4 +1,4 @@
-package fr.istic.taa.jaxrs.dao.generic;
+package fr.istic.taa.jaxrs.dao;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;

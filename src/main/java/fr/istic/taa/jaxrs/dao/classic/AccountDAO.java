@@ -1,8 +1,8 @@
-package fr.istic.taa.jaxrs.dao.generic.classic;
+package fr.istic.taa.jaxrs.dao.classic;
 
 import java.util.List;
 
-import fr.istic.taa.jaxrs.dao.generic.AbstractJpaDao;
+import fr.istic.taa.jaxrs.dao.AbstractJpaDao;
 import fr.istic.taa.jaxrs.entity.Account;
 import fr.istic.taa.jaxrs.entity.Admin;
 import fr.istic.taa.jaxrs.entity.Moral;

@@ -1,6 +1,6 @@
 package fr.istic.taa.jaxrs.dao;
 
-import fr.istic.taa.jaxrs.dao.generic.classic.AccountDAO;
+import fr.istic.taa.jaxrs.dao.classic.AccountDAO;
 import fr.istic.taa.jaxrs.entity.Account;
 import fr.istic.taa.jaxrs.entity.Admin;
 import fr.istic.taa.jaxrs.entity.Moral;

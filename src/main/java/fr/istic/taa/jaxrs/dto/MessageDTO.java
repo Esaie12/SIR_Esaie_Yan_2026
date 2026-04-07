@@ -2,10 +2,6 @@ package fr.istic.taa.jaxrs.dto;
 
 import java.time.LocalDateTime;
 
-import fr.istic.taa.jaxrs.dao.generic.AbstractJpaDao;
-import fr.istic.taa.jaxrs.entity.Client;
-import fr.istic.taa.jaxrs.entity.Message;
-
 public class MessageDTO  {
 
 	private Long id;

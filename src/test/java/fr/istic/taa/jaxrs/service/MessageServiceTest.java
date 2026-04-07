@@ -1,7 +1,7 @@
 package fr.istic.taa.jaxrs.service;
 
-import fr.istic.taa.jaxrs.dao.generic.classic.AccountDAO;
-import fr.istic.taa.jaxrs.dao.generic.classic.MessageDAO;
+import fr.istic.taa.jaxrs.dao.classic.AccountDAO;
+import fr.istic.taa.jaxrs.dao.classic.MessageDAO;
 import fr.istic.taa.jaxrs.dto.MessageDTO;
 import fr.istic.taa.jaxrs.entity.Message;
 import fr.istic.taa.jaxrs.entity.Users;

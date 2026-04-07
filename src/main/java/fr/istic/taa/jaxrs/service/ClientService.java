@@ -1,29 +1,32 @@
 package fr.istic.taa.jaxrs.service;
 
-import fr.istic.taa.jaxrs.dao.generic.classic.ClientDAO;
-import fr.istic.taa.jaxrs.dao.generic.classic.GroupeDAO;
+import fr.istic.taa.jaxrs.dao.classic.AccountDAO;
+import fr.istic.taa.jaxrs.dao.classic.ClientDAO;
+import fr.istic.taa.jaxrs.dao.classic.GroupeDAO;
 import fr.istic.taa.jaxrs.dto.ClientDTO;
 import fr.istic.taa.jaxrs.dto.ClientGroupeDTO;
 import fr.istic.taa.jaxrs.entity.Client;
 import fr.istic.taa.jaxrs.entity.ClientGroupe;
 import fr.istic.taa.jaxrs.entity.Groupe;
+import fr.istic.taa.jaxrs.entity.Users;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ClientService {
 
     private final ClientDAO clientDAO = new ClientDAO();
     private final GroupeDAO groupeDAO = new GroupeDAO();
-
-    // ─── Mapping ─────────────────────────────────────────────────────────────
+    private final AccountDAO accountDAO = new AccountDAO();
 
     public ClientDTO toDTO(Client client) {
         if (client == null) return null;
         return new ClientDTO(
                 client.getId(), client.getName(), client.getEmail(),
                 client.getPhone(), client.getLocalisation(),
-                client.getCountry(), client.getSexe()
+                client.getCountry(), client.getSexe(),
+                client.getUser() != null ? client.getUser().getId() : null
         );
     }
 
@@ -38,8 +41,6 @@ public class ClientService {
         return client;
     }
 
-    // ─── CRUD ────────────────────────────────────────────────────────────────
-
     public ClientDTO findUser(Long id) {
         return toDTO(clientDAO.findOne(id));
     }
@@ -53,8 +54,25 @@ public class ClientService {
         return result;
     }
 
+    public List<ClientDTO> getClientsByUser(Long userId) {
+        return clientDAO.findByUserId(userId)
+                .stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
     public ClientDTO createUser(ClientDTO dto) {
         Client client = toEntity(dto);
+
+        // Récupération et assignation du User obligatoire
+        if (dto.getUserId() != null) {
+            Users user = accountDAO.findUserById(dto.getUserId());
+            if (user == null) throw new RuntimeException("Utilisateur introuvable");
+            client.setUser(user);
+        } else {
+            throw new RuntimeException("userId est requis pour créer un client");
+        }
+
         clientDAO.save(client);
         return toDTO(client);
     }
@@ -74,8 +92,6 @@ public class ClientService {
     public void deleteUser(Long id) {
         clientDAO.deleteById(id);
     }
-
-    // ─── Requêtes métier ─────────────────────────────────────────────────────
 
     public List<ClientDTO> findByGroupe(Long groupeId) {
         List<Client> clients = clientDAO.findByGroupe(groupeId);
@@ -99,10 +115,6 @@ public class ClientService {
         return result;
     }
 
-    /**
-     * Recherche dynamique : country et/ou sexe (CriteriaQuery sous-jacent).
-     * Les paramètres null sont ignorés.
-     */
     public List<ClientDTO> findByCriteria(String country, String sexe) {
         List<Client> clients = clientDAO.findByCriteria(country, sexe);
         List<ClientDTO> result = new ArrayList<>();
@@ -111,8 +123,6 @@ public class ClientService {
         }
         return result;
     }
-
-    // ─── Relation Client ↔ Groupe ────────────────────────────────────────────
 
     public ClientGroupeDTO addClientToGroupe(Long clientId, Long groupeId) {
         Client client = clientDAO.findOne(clientId);
@@ -131,9 +141,8 @@ public class ClientService {
         Client client = clientDAO.findOne(clientId);
         if (client == null) return new ArrayList<>();
 
-        List<ClientGroupe> clientGroupes = client.getClientGroupes();
         List<ClientGroupeDTO> result = new ArrayList<>();
-        for (ClientGroupe cg : clientGroupes) {
+        for (ClientGroupe cg : client.getClientGroupes()) {
             result.add(new ClientGroupeDTO(
                     cg.getClient().getId(), cg.getGroupe().getId(),
                     cg.getDateAdd(), cg.getClient().getName(),

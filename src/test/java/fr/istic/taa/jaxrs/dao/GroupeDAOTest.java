@@ -1,11 +1,14 @@
 package fr.istic.taa.jaxrs.dao;
 
-import fr.istic.taa.jaxrs.dao.generic.classic.GroupeDAO;
+import fr.istic.taa.jaxrs.dao.classic.AccountDAO;
+import fr.istic.taa.jaxrs.dao.classic.GroupeDAO;
 import fr.istic.taa.jaxrs.entity.Groupe;
+import fr.istic.taa.jaxrs.entity.Users;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -13,11 +16,17 @@ import static org.junit.Assert.*;
 public class GroupeDAOTest {
 
     private GroupeDAO groupeDAO;
+    private AccountDAO accountDAO;
     private Long groupeId;
+    private Users testUser;
 
     @Before
     public void setUp() {
         groupeDAO = new GroupeDAO();
+        accountDAO = new AccountDAO();
+
+        testUser = new Users("groupeuser@test.com", "pass", "Test", "User", false, LocalDateTime.now());
+        accountDAO.save(testUser);
     }
 
     @After
@@ -27,17 +36,22 @@ public class GroupeDAOTest {
             if (g != null) groupeDAO.delete(g);
             groupeId = null;
         }
+        if (testUser != null) {
+            Users u = accountDAO.findUserById(testUser.getId());
+            if (u != null) accountDAO.delete(u);
+            testUser = null;
+        }
     }
 
     private Groupe createGroupe(String libelle, String color) {
         Groupe g = new Groupe(libelle);
         g.setColor(color);
+        // On assigne l'utilisateur pour satisfaire la contrainte not-null
+        g.setUser(testUser);
         groupeDAO.save(g);
         groupeId = g.getId();
         return g;
     }
-
-    // ─── save / findOne ──────────────────────────────────────────────────────
 
     @Test
     public void testSaveAndFind() {
@@ -50,8 +64,6 @@ public class GroupeDAOTest {
         assertEquals("#FFD700", found.getColor());
         assertNotNull("dateCreate doit être renseignée", found.getDateCreate());
     }
-
-    // ─── findByLibelle (@NamedQuery) ─────────────────────────────────────────
 
     @Test
     public void testFindByLibelle_exact() {
@@ -66,7 +78,6 @@ public class GroupeDAOTest {
     public void testFindByLibelle_partiel() {
         createGroupe("Super VIP", "#FF0000");
 
-        // findByLibelle utilise LIKE → recherche partielle
         List<Groupe> result = groupeDAO.findByLibelle("VIP");
         assertFalse(result.isEmpty());
     }
@@ -85,16 +96,12 @@ public class GroupeDAOTest {
         assertTrue(result.isEmpty());
     }
 
-    // ─── findAllSorted (@NamedQuery) ─────────────────────────────────────────
-
     @Test
     public void testFindAllSorted() {
         createGroupe("Argent", "#C0C0C0");
 
         List<Groupe> result = groupeDAO.findAllSorted();
         assertFalse(result.isEmpty());
-        // Les groupes doivent être triés par dateCreate DESC
-        // → le plus récent en premier
         for (int i = 0; i < result.size() - 1; i++) {
             assertFalse(
                     result.get(i).getDateCreate()
@@ -102,8 +109,6 @@ public class GroupeDAOTest {
             );
         }
     }
-
-    // ─── update ──────────────────────────────────────────────────────────────
 
     @Test
     public void testUpdate() {
@@ -118,8 +123,6 @@ public class GroupeDAOTest {
         assertEquals("#222222", found.getColor());
     }
 
-    // ─── deleteById ──────────────────────────────────────────────────────────
-
     @Test
     public void testDeleteById() {
         Groupe g = createGroupe("To Delete", "#000000");
@@ -129,8 +132,6 @@ public class GroupeDAOTest {
         groupeDAO.deleteById(id);
         assertNull(groupeDAO.findOne(id));
     }
-
-    // ─── findAll ─────────────────────────────────────────────────────────────
 
     @Test
     public void testFindAll() {

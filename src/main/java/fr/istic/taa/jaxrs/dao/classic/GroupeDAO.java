@@ -1,6 +1,6 @@
-package fr.istic.taa.jaxrs.dao.generic.classic;
+package fr.istic.taa.jaxrs.dao.classic;
 
-import fr.istic.taa.jaxrs.dao.generic.AbstractJpaDao;
+import fr.istic.taa.jaxrs.dao.AbstractJpaDao;
 import fr.istic.taa.jaxrs.entity.Groupe;
 
 import java.util.List;
@@ -21,6 +21,14 @@ public class GroupeDAO extends AbstractJpaDao<Long, Groupe> {
     public List<Groupe> findAllSorted() {
         return entityManager
                 .createNamedQuery("Groupe.findAll", Groupe.class)
+                .getResultList();
+    }
+
+    public List<Groupe> findByUserId(Long userId) {
+        return entityManager.createQuery(
+                        "SELECT g FROM Groupe g WHERE g.user.id = :userId",
+                        Groupe.class)
+                .setParameter("userId", userId)
                 .getResultList();
     }
 }

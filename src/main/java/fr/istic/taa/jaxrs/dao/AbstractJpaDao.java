@@ -1,4 +1,4 @@
-package fr.istic.taa.jaxrs.dao.generic;
+package fr.istic.taa.jaxrs.dao;
 
 import java.io.Serializable;
 import java.util.List;
@@ -20,6 +20,12 @@ public abstract class AbstractJpaDao<K, T extends Serializable> implements IGene
 		this.clazz = clazzToSet;
 	}
 
+	// ─── AJOUT CRUCIAL POUR RÉSOUDRE L'ERREUR DANS LES TESTS ───
+	public EntityManager getEntityManager() {
+		return this.entityManager;
+	}
+	// ───────────────────────────────────────────────────────────
+
 	public T findOne(K id) {
 		return entityManager.find(clazz, id);
 	}
@@ -33,7 +39,6 @@ public abstract class AbstractJpaDao<K, T extends Serializable> implements IGene
 		t.begin();
 		entityManager.persist(entity);
 		t.commit();
-
 	}
 
 	public T update(final T entity) {
@@ -42,7 +47,6 @@ public abstract class AbstractJpaDao<K, T extends Serializable> implements IGene
 		T res = entityManager.merge(entity);
 		t.commit();
 		return res;
-
 	}
 
 	public void delete(T entity) {
@@ -50,7 +54,6 @@ public abstract class AbstractJpaDao<K, T extends Serializable> implements IGene
 		t.begin();
 		entityManager.remove(entity);
 		t.commit();
-
 	}
 
 	public void deleteById(K entityId) {

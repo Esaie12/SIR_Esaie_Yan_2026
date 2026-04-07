@@ -1,15 +1,18 @@
 package fr.istic.taa.jaxrs.service;
 
-import fr.istic.taa.jaxrs.dao.generic.classic.ClientDAO;
-import fr.istic.taa.jaxrs.dao.generic.classic.GroupeDAO;
+import fr.istic.taa.jaxrs.dao.classic.AccountDAO;
+import fr.istic.taa.jaxrs.dao.classic.ClientDAO;
+import fr.istic.taa.jaxrs.dao.classic.GroupeDAO;
 import fr.istic.taa.jaxrs.dto.ClientDTO;
 import fr.istic.taa.jaxrs.dto.ClientGroupeDTO;
 import fr.istic.taa.jaxrs.entity.Client;
 import fr.istic.taa.jaxrs.entity.Groupe;
+import fr.istic.taa.jaxrs.entity.Users;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -19,19 +22,31 @@ public class ClientServiceTest {
     private ClientService clientService;
     private ClientDAO clientDAO;
     private GroupeDAO groupeDAO;
+    private AccountDAO accountDAO;
 
     private Long clientId;
     private Long groupeId;
+
+    // Variables pour l'utilisateur obligatoire
+    private Users testUser;
+    private Long testUserId;
 
     @Before
     public void setUp() {
         clientService = new ClientService();
         clientDAO = new ClientDAO();
         groupeDAO = new GroupeDAO();
+        accountDAO = new AccountDAO();
+
+        // Création et persistance de l'utilisateur obligatoire pour les tests
+        testUser = new Users("testuser@svctest.com", "password123", "Prenom", "Nom", true, LocalDateTime.now());
+        accountDAO.save(testUser);
+        testUserId = testUser.getId();
     }
 
     @After
     public void tearDown() {
+        // Nettoyage en cascade inversée : Client -> Groupe -> User
         if (clientId != null) {
             Client c = clientDAO.findOne(clientId);
             if (c != null) clientDAO.delete(c);
@@ -41,6 +56,11 @@ public class ClientServiceTest {
             Groupe g = groupeDAO.findOne(groupeId);
             if (g != null) groupeDAO.delete(g);
             groupeId = null;
+        }
+        if (testUserId != null) {
+            Users u = (Users) accountDAO.findOne(testUserId);
+            if (u != null) accountDAO.delete(u);
+            testUserId = null;
         }
     }
 
@@ -52,6 +72,10 @@ public class ClientServiceTest {
         dto.setSexe(sexe);
         dto.setPhone("0600000000");
         dto.setLocalisation("Paris");
+
+        // AJOUT CRUCIAL : Association de l'ID utilisateur généré
+        dto.setUserId(testUserId);
+
         return dto;
     }
 
@@ -174,6 +198,10 @@ public class ClientServiceTest {
 
         Groupe groupe = new Groupe("Test Groupe Service");
         groupe.setColor("#123456");
+
+        // AJOUT CRUCIAL : Association du groupe à l'utilisateur existant
+        groupe.setUser(testUser);
+
         groupeDAO.save(groupe);
         groupeId = groupe.getId();
 
@@ -189,6 +217,10 @@ public class ClientServiceTest {
     public void testAddClientToGroupe_clientInexistant() {
         Groupe groupe = new Groupe("Ghost Groupe");
         groupe.setColor("#000000");
+
+        // AJOUT CRUCIAL : Association du groupe à l'utilisateur existant
+        groupe.setUser(testUser);
+
         groupeDAO.save(groupe);
         groupeId = groupe.getId();
 
@@ -204,6 +236,10 @@ public class ClientServiceTest {
 
         Groupe groupe = new Groupe("Mon Groupe");
         groupe.setColor("#ABCDEF");
+
+        // AJOUT CRUCIAL : Association du groupe à l'utilisateur existant
+        groupe.setUser(testUser);
+
         groupeDAO.save(groupe);
         groupeId = groupe.getId();
 

@@ -1,6 +1,6 @@
 package fr.istic.taa.jaxrs.service;
 
-import fr.istic.taa.jaxrs.dao.generic.classic.AccountDAO;
+import fr.istic.taa.jaxrs.dao.classic.AccountDAO;
 import fr.istic.taa.jaxrs.dto.AccountDTO;
 import fr.istic.taa.jaxrs.entity.Account;
 import org.junit.After;

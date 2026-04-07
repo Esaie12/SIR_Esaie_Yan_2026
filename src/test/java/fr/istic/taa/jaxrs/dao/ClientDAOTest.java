@@ -1,14 +1,17 @@
 package fr.istic.taa.jaxrs.dao;
 
-import fr.istic.taa.jaxrs.dao.generic.classic.ClientDAO;
-import fr.istic.taa.jaxrs.dao.generic.classic.GroupeDAO;
+import fr.istic.taa.jaxrs.dao.classic.AccountDAO;
+import fr.istic.taa.jaxrs.dao.classic.ClientDAO;
+import fr.istic.taa.jaxrs.dao.classic.GroupeDAO;
 import fr.istic.taa.jaxrs.entity.Client;
 import fr.istic.taa.jaxrs.entity.ClientGroupe;
 import fr.istic.taa.jaxrs.entity.Groupe;
+import fr.istic.taa.jaxrs.entity.Users;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -17,15 +20,21 @@ public class ClientDAOTest {
 
     private ClientDAO clientDAO;
     private GroupeDAO groupeDAO;
+    private AccountDAO accountDAO;
 
-    // IDs à nettoyer après chaque test
     private Long clientId;
     private Long groupeId;
+    private Users testUser;
 
     @Before
     public void setUp() {
         clientDAO = new ClientDAO();
         groupeDAO = new GroupeDAO();
+        accountDAO = new AccountDAO();
+
+        // Création de l'utilisateur obligatoire pour les clients et groupes
+        testUser = new Users("clientuser@test.com", "pass", "Test", "User", false, LocalDateTime.now());
+        accountDAO.save(testUser);
     }
 
     @After
@@ -40,9 +49,12 @@ public class ClientDAOTest {
             if (g != null) groupeDAO.delete(g);
             groupeId = null;
         }
+        if (testUser != null) {
+            Users u = accountDAO.findUserById(testUser.getId());
+            if (u != null) accountDAO.delete(u);
+            testUser = null;
+        }
     }
-
-    // ─── Helpers ─────────────────────────────────────────────────────────────
 
     private Client createClient(String name, String email, String country, String sexe) {
         Client c = new Client();
@@ -52,6 +64,9 @@ public class ClientDAOTest {
         c.setSexe(sexe);
         c.setPhone("0600000000");
         c.setLocalisation("Paris");
+        // On assigne l'utilisateur pour satisfaire la contrainte not-null
+        c.setUser(testUser);
+
         clientDAO.save(c);
         clientId = c.getId();
         return c;
@@ -60,12 +75,11 @@ public class ClientDAOTest {
     private Groupe createGroupe(String libelle) {
         Groupe g = new Groupe(libelle);
         g.setColor("#FF0000");
+        g.setUser(testUser); // Pareil ici
         groupeDAO.save(g);
         groupeId = g.getId();
         return g;
     }
-
-    // ─── save / findOne ──────────────────────────────────────────────────────
 
     @Test
     public void testSaveAndFind() {
@@ -77,8 +91,6 @@ public class ClientDAOTest {
         assertEquals("Jean Dupont", found.getName());
         assertEquals("France", found.getCountry());
     }
-
-    // ─── findByEmail (@NamedQuery) ───────────────────────────────────────────
 
     @Test
     public void testFindByEmail() {
@@ -93,8 +105,6 @@ public class ClientDAOTest {
     public void testFindByEmail_notFound() {
         assertNull(clientDAO.findByEmail("nobody@test.com"));
     }
-
-    // ─── findByCountry (@NamedQuery) ─────────────────────────────────────────
 
     @Test
     public void testFindByCountry() {
@@ -111,8 +121,6 @@ public class ClientDAOTest {
         }
         assertTrue(found);
     }
-
-    // ─── findByCriteria (CriteriaQuery) ──────────────────────────────────────
 
     @Test
     public void testFindByCriteria_countryAndSexe() {
@@ -145,8 +153,6 @@ public class ClientDAOTest {
         assertFalse("Sans filtre, tous les clients sont retournés", result.isEmpty());
     }
 
-    // ─── findByGroupe (JPQL classique) ───────────────────────────────────────
-
     @Test
     public void testFindByGroupe() {
         Client client = createClient("Client Groupe", "groupe@test.com", "France", "M");
@@ -161,23 +167,18 @@ public class ClientDAOTest {
         assertEquals(client.getId(), result.get(0).getId());
     }
 
-    // ─── findAllSorted (@NamedQuery) ─────────────────────────────────────────
-
     @Test
     public void testFindAllSorted() {
         createClient("Zorro Test", "zorro@test.com", "France", "M");
 
         List<Client> result = clientDAO.findAllSorted();
         assertFalse(result.isEmpty());
-        // Vérifie que le tri est alphabétique
         for (int i = 0; i < result.size() - 1; i++) {
             assertTrue(
                     result.get(i).getName().compareToIgnoreCase(result.get(i + 1).getName()) <= 0
             );
         }
     }
-
-    // ─── update ──────────────────────────────────────────────────────────────
 
     @Test
     public void testUpdate() {
@@ -192,13 +193,11 @@ public class ClientDAOTest {
         assertEquals("Belgique", found.getCountry());
     }
 
-    // ─── deleteById ──────────────────────────────────────────────────────────
-
     @Test
     public void testDeleteById() {
         Client client = createClient("To Delete", "todelete@test.com", "France", "M");
         Long id = client.getId();
-        clientId = null; // On gère manuellement la suppression dans ce test
+        clientId = null;
 
         clientDAO.deleteById(id);
         assertNull(clientDAO.findOne(id));

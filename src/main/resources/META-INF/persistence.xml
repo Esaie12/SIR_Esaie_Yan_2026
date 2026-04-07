@@ -37,20 +37,33 @@
 
 		</properties>
 	</persistence-unit>
-    <persistence-unit name="postgres" transaction-type="RESOURCE_LOCAL">
-        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+	<persistence-unit name="postgres" transaction-type="RESOURCE_LOCAL">
+		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
-        <properties>
-            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
-            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/marketingdb"/>
-            <property name="jakarta.persistence.jdbc.user" value="postgres"/>
-            <property name="jakarta.persistence.jdbc.password" value="postgres"/>
+		<class>fr.istic.taa.jaxrs.entity.Account</class>
+		<class>fr.istic.taa.jaxrs.entity.Users</class>
+		<class>fr.istic.taa.jaxrs.entity.Client</class>
+		<class>fr.istic.taa.jaxrs.entity.Groupe</class>
+		<class>fr.istic.taa.jaxrs.entity.Message</class>
+		<class>fr.istic.taa.jaxrs.entity.ClientGroupe</class>
 
-            <property name="jakarta.persistence.schema-generation.database.action" value="update"/>
-            <property name="jakarta.persistence.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
-            <property name="hibernate.show_sql" value="true"/>
-        </properties>
-    </persistence-unit>
+		<properties>
+			<property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+			<property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/marketingdb"/>
+			<property name="jakarta.persistence.jdbc.user" value="postgres"/>
+			<property name="jakarta.persistence.jdbc.password" value="postgres"/>
+
+			<property name="jakarta.persistence.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
+
+			<property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create"/>
+
+			<property name="hibernate.hbm2ddl.auto" value="create"/>
+
+			<property name="hibernate.show_sql" value="true"/>
+			<property name="hibernate.format_sql" value="true"/>
+			<property name="hibernate.highlight_sql" value="true"/>
+		</properties>
+	</persistence-unit>
 
 
     <persistence-unit name="mysql">

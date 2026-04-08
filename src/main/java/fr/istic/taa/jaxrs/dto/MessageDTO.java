@@ -11,17 +11,19 @@ public class MessageDTO {
 
 	// L'un des deux est renseigné, l'autre est null
 	private Long userId;
+	private Long senderId;
 	private Long groupeId;
 
 	public MessageDTO() {}
 
 	public MessageDTO(Long id, String title, String content,
-	                  LocalDateTime dateSend, Long userId, Long groupeId) {
+	                  LocalDateTime dateSend, Long userId, Long senderId, Long groupeId) {
 		this.id       = id;
 		this.title    = title;
 		this.content  = content;
 		this.dateSend = dateSend;
 		this.userId   = userId;
+		this.senderId = senderId;
 		this.groupeId = groupeId;
 	}
 
@@ -39,6 +41,9 @@ public class MessageDTO {
 
 	public Long getUserId() { return userId; }
 	public void setUserId(Long userId) { this.userId = userId; }
+
+	public Long getSenderId() {return senderId; }
+	public void setSenderId(Long senderId) {this.senderId = senderId; }
 
 	public Long getGroupeId() { return groupeId; }
 	public void setGroupeId(Long groupeId) { this.groupeId = groupeId; }

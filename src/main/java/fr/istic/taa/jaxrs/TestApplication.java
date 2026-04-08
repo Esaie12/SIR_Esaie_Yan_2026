@@ -43,8 +43,8 @@ public class TestApplication extends Application {
         clazzes.add(MessageResource.class);
         clazzes.add(JacksonConfig.class);
         clazzes.add(CorsFilter.class);
-         
-
+        clazzes.add(CorsRequestFilter.class);
+        
         return clazzes;
     }
 

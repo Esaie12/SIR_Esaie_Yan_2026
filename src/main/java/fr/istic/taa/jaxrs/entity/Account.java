@@ -13,7 +13,7 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 
 @Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE) //Toutes les tables qui vont heritées de ça seront dans ACCOUNT
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "type_account")
 public class Account implements Serializable {
 
@@ -29,10 +29,8 @@ public class Account implements Serializable {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
-    // Constructeur vide obligatoire pour JPA
     public Account() {}
-    
-    //Constructeur avec des paramètres
+
     public Account(String email, String password, String firstname, String lastname) {
 		super();
 		this.email = email;

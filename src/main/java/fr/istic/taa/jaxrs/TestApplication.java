@@ -37,15 +37,14 @@ public class TestApplication extends Application {
         final Set<Class<?>> clazzes = new HashSet<Class<?>>();
 
         clazzes.add(OpenApiResource.class);
-        clazzes.add(ClientResource.class);       //clazzes.add(PetResource.class);
+        clazzes.add(ClientResource.class);
         clazzes.add(GroupeResource.class);
         clazzes.add(AccountResource.class);
         clazzes.add(MessageResource.class);
         clazzes.add(JacksonConfig.class);
-        clazzes.add(CorsFilter.class); // ← CORS pour Vue.js
-        //clazzes.add(AcceptHeaderOpenApiResource.class);
-         
-
+        clazzes.add(CorsFilter.class);
+        clazzes.add(CorsRequestFilter.class);
+        
         return clazzes;
     }
 

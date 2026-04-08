@@ -6,6 +6,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@NamedQueries({
+        @NamedQuery(
+                name  = "Client.findByCountry",
+                query = "SELECT c FROM Client c WHERE c.country = :country"
+        ),
+        @NamedQuery(
+                name  = "Client.findByEmail",
+                query = "SELECT c FROM Client c WHERE c.email = :email"
+        ),
+        @NamedQuery(
+                name  = "Client.findAll",
+                query = "SELECT c FROM Client c ORDER BY c.name ASC"
+        )
+})
 public class Client implements Serializable {
 
     @Id
@@ -29,7 +43,6 @@ public class Client implements Serializable {
 
     public Client() {}
 
-    // Getters & Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

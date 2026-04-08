@@ -5,6 +5,15 @@ import fr.istic.taa.jaxrs.dto.ClientDTO;
 import fr.istic.taa.jaxrs.dto.GroupeDTO;
 import fr.istic.taa.jaxrs.service.ClientService;
 import fr.istic.taa.jaxrs.service.GroupeService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -14,35 +23,63 @@ import java.util.List;
 @Path("/groupes")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Tag(name = "Groupes", description = "Gestion des groupes de clients")
 public class GroupeResource {
 
     private final GroupeService groupeService = new GroupeService();
     private final ClientService clientService = new ClientService();
 
-    // ─── GET /groupes ────────────────────────────────────────────────────────
     @GET
+    @Operation(
+            summary     = "Lister tous les groupes",
+            description = "Retourne la liste complète des groupes, triée par date de création décroissante."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200", description = "Liste des groupes",
+                    content = @Content(schema = @Schema(implementation = GroupeDTO.class)))
+    })
     public Response getAllGroupes() {
         List<GroupeDTO> list = groupeService.findAllGroupes();
         return Response.ok(ApiResponse.ok(list)).build();
     }
 
-    // ─── GET /groupes/{id} ───────────────────────────────────────────────────
     @GET
     @Path("/{id}")
-    public Response getGroupe(@PathParam("id") Long id) {
+    @Operation(summary = "Récupérer un groupe par son ID")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200", description = "Groupe trouvé",
+                    content = @Content(schema = @Schema(implementation = GroupeDTO.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404", description = "Groupe introuvable")
+    })
+    public Response getGroupe(
+            @Parameter(description = "ID du groupe", required = true) @PathParam("id") Long id) {
         GroupeDTO dto = groupeService.findGroupe(id);
         if (dto == null)
-            return Response.status(404)
-                    .entity(ApiResponse.notFound("Groupe introuvable")).build();
+            return Response.status(404).entity(ApiResponse.notFound("Groupe introuvable")).build();
         return Response.ok(ApiResponse.ok(dto)).build();
     }
 
-    // ─── POST /groupes ───────────────────────────────────────────────────────
     @POST
-    public Response createGroupe(GroupeDTO dto) {
+    @Operation(
+            summary     = "Créer un nouveau groupe",
+            description = "Crée un groupe avec un libellé et une couleur. La date de création est générée automatiquement."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "201", description = "Groupe créé",
+                    content = @Content(schema = @Schema(implementation = GroupeDTO.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400", description = "Données invalides")
+    })
+    public Response createGroupe(
+            @RequestBody(description = "Données du groupe (libelle, color)", required = true,
+                    content = @Content(schema = @Schema(implementation = GroupeDTO.class)))
+            GroupeDTO dto) {
         GroupeDTO created = groupeService.createGroupe(dto);
-        return Response.status(201)
-                .entity(ApiResponse.created(created)).build();
+        return Response.status(201).entity(ApiResponse.created(created)).build();
     }
     
     @GET
@@ -56,30 +93,60 @@ public class GroupeResource {
         }
     }
 
-    // ─── PUT /groupes/{id} ───────────────────────────────────────────────────
     @PUT
     @Path("/{id}")
-    public Response updateGroupe(@PathParam("id") Long id, GroupeDTO dto) {
+    @Operation(
+            summary     = "Mettre à jour un groupe",
+            description = "Modifie le libellé et/ou la couleur d'un groupe. La dateCreate n'est pas modifiable."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200", description = "Groupe mis à jour",
+                    content = @Content(schema = @Schema(implementation = GroupeDTO.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404", description = "Groupe introuvable")
+    })
+    public Response updateGroupe(
+            @Parameter(description = "ID du groupe", required = true) @PathParam("id") Long id,
+            @RequestBody(description = "Nouvelles données du groupe", required = true,
+                    content = @Content(schema = @Schema(implementation = GroupeDTO.class)))
+            GroupeDTO dto) {
         GroupeDTO updated = groupeService.updateGroupe(id, dto);
         if (updated == null)
-            return Response.status(404)
-                    .entity(ApiResponse.notFound("Groupe introuvable")).build();
+            return Response.status(404).entity(ApiResponse.notFound("Groupe introuvable")).build();
         return Response.ok(ApiResponse.ok(updated)).build();
     }
 
-    // ─── DELETE /groupes/{id} ────────────────────────────────────────────────
     @DELETE
     @Path("/{id}")
-    public Response deleteGroupe(@PathParam("id") Long id) {
+    @Operation(summary = "Supprimer un groupe")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "204", description = "Groupe supprimé"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404", description = "Groupe introuvable")
+    })
+    public Response deleteGroupe(
+            @Parameter(description = "ID du groupe", required = true) @PathParam("id") Long id) {
         groupeService.deleteGroupe(id);
-        return Response.status(204)
-                .entity(ApiResponse.noContent()).build();
+        return Response.status(204).entity(ApiResponse.noContent()).build();
     }
 
-    // ─── GET /groupes/{id}/clients ───────────────────────────────────────────
     @GET
     @Path("/{id}/clients")
-    public Response getClientsOfGroupe(@PathParam("id") Long id) {
+    @Operation(
+            summary     = "Lister les clients d'un groupe",
+            description = "Retourne tous les clients appartenant au groupe identifié."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200", description = "Liste des clients du groupe",
+                    content = @Content(schema = @Schema(implementation = ClientDTO.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404", description = "Groupe introuvable")
+    })
+    public Response getClientsOfGroupe(
+            @Parameter(description = "ID du groupe", required = true) @PathParam("id") Long id) {
         List<ClientDTO> list = clientService.findByGroupe(id);
         return Response.ok(ApiResponse.ok(list)).build();
     }

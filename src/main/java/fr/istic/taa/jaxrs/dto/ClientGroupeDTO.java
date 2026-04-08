@@ -23,7 +23,6 @@ public class ClientGroupeDTO {
         this.groupeLibelle = groupeLibelle;
     }
 
-    // Getters & Setters
     public Long getClientId() { return clientId; }
     public void setClientId(Long clientId) { this.clientId = clientId; }
 

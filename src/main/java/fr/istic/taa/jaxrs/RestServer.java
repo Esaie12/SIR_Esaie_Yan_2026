@@ -1,6 +1,5 @@
 package fr.istic.taa.jaxrs;
 
-import fr.istic.taa.jaxrs.dao.EntityManagerHelper;
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.handlers.PathHandler;
@@ -13,6 +12,9 @@ import io.undertow.util.Headers;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
+
+import fr.istic.taa.jaxrs.dao.EntityManagerHelper;
+
 import java.util.logging.Logger;
 
 public class RestServer {

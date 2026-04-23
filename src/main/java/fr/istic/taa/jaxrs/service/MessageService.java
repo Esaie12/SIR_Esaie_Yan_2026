@@ -4,18 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.istic.taa.jaxrs.dao.classic.AccountDAO;
+import fr.istic.taa.jaxrs.dao.classic.ClientDAO;
 import fr.istic.taa.jaxrs.dao.classic.GroupeDAO;
 import fr.istic.taa.jaxrs.dao.classic.MessageDAO;
 import fr.istic.taa.jaxrs.dto.MessageDTO;
 import fr.istic.taa.jaxrs.entity.Groupe;
 import fr.istic.taa.jaxrs.entity.Message;
 import fr.istic.taa.jaxrs.entity.Users;
+import fr.istic.taa.jaxrs.entity.Client;
 
 public class MessageService {
 
     private final MessageDAO messageDAO = new MessageDAO();
     private final AccountDAO accountDAO = new AccountDAO();
     private final GroupeDAO  groupeDAO  = new GroupeDAO();
+    private final ClientDAO clientDAO =  new ClientDAO();
 
     // ─── Mapping entité → DTO ───────────────────────────────────────────────
 
@@ -26,7 +29,7 @@ public class MessageService {
         dto.setContent(message.getContent());
         dto.setDateSend(message.getDateSend());
         // L'un des deux sera null selon le type de destinataire
-        dto.setUserId(message.getUser()   != null ? message.getUser().getId()   : null);
+        dto.setUserId(message.getClient()  != null ? message.getClient().getId()   : null);
         dto.setSenderId(message.getSender() != null ? message.getSender().getId() : null);
         dto.setGroupeId(message.getGroupe() != null ? message.getGroupe().getId() : null);
         return dto;
@@ -61,9 +64,14 @@ public class MessageService {
         Message message;
 
         if (hasUser) {
-            Users user = accountDAO.findUserById(dto.getUserId());
+            /*Users user = accountDAO.findUserById(dto.getUserId());
             if (user == null) throw new RuntimeException("Utilisateur destinataire introuvable");
-            message = new Message(dto.getTitle(), dto.getContent(), dto.getDateSend(), user, sender);
+            message = new Message(dto.getTitle(), dto.getContent(), dto.getDateSend(), user, sender);*/
+            
+            Client client = clientDAO.findClientById(dto.getUserId());
+            if (client == null) throw new RuntimeException("Client destinataire introuvable");
+            message = new Message(dto.getTitle(), dto.getContent(), dto.getDateSend(), client, sender);
+            
         } else {
             Groupe groupe = groupeDAO.findOne(dto.getGroupeId());
             if (groupe == null) throw new RuntimeException("Groupe introuvable");
@@ -95,4 +103,15 @@ public class MessageService {
     public void deleteMessage(Long id) {
         messageDAO.deleteById(id);
     }
+    
+    
+    public List<MessageDTO> getMesMessages(Long senderId) {
+        List<Message> messages = messageDAO.findBySender(senderId);
+        List<MessageDTO> dtos = new ArrayList<>();
+        for (Message message : messages) {
+            dtos.add(toDTO(message));
+        }
+        return dtos;
+    }
+    
 }

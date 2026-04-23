@@ -20,33 +20,29 @@ import static org.junit.Assert.*;
 public class ClientServiceTest {
 
     private ClientService clientService;
-    private ClientDAO clientDAO;
-    private GroupeDAO groupeDAO;
-    private AccountDAO accountDAO;
+    private ClientDAO     clientDAO;
+    private GroupeDAO     groupeDAO;
+    private AccountDAO    accountDAO;
 
     private Long clientId;
     private Long groupeId;
-
-    // Variables pour l'utilisateur obligatoire
     private Users testUser;
-    private Long testUserId;
+    private Long  testUserId;
 
     @Before
     public void setUp() {
         clientService = new ClientService();
-        clientDAO = new ClientDAO();
-        groupeDAO = new GroupeDAO();
-        accountDAO = new AccountDAO();
+        clientDAO     = new ClientDAO();
+        groupeDAO     = new GroupeDAO();
+        accountDAO    = new AccountDAO();
 
-        // Création et persistance de l'utilisateur obligatoire pour les tests
-        testUser = new Users("testuser@svctest.com", "password123", "Prenom", "Nom", true, LocalDateTime.now());
+        testUser   = new Users("testuser@svctest.com", "password123", "Prenom", "Nom", true, LocalDateTime.now());
         accountDAO.save(testUser);
         testUserId = testUser.getId();
     }
 
     @After
     public void tearDown() {
-        // Nettoyage en cascade inversée : Client -> Groupe -> User
         if (clientId != null) {
             Client c = clientDAO.findOne(clientId);
             if (c != null) clientDAO.delete(c);
@@ -72,19 +68,24 @@ public class ClientServiceTest {
         dto.setSexe(sexe);
         dto.setPhone("0600000000");
         dto.setLocalisation("Paris");
-
-        // AJOUT CRUCIAL : Association de l'ID utilisateur généré
         dto.setUserId(testUserId);
-
         return dto;
+    }
+
+    private Groupe createGroupe(String libelle) {
+        Groupe g = new Groupe(libelle);
+        g.setColor("#123456");
+        g.setUser(testUser);
+        groupeDAO.save(g);
+        groupeId = g.getId();
+        return g;
     }
 
     // ─── createUser ──────────────────────────────────────────────────────────
 
     @Test
     public void testCreateUser() {
-        ClientDTO dto = buildDTO("Jean Test", "jean@svctest.com", "France", "M");
-        ClientDTO created = clientService.createUser(dto);
+        ClientDTO created = clientService.createUser(buildDTO("Jean Test", "jean@svctest.com", "France", "M"));
 
         assertNotNull(created);
         assertNotNull("L'ID doit être généré", created.getId());
@@ -96,8 +97,7 @@ public class ClientServiceTest {
 
     @Test
     public void testFindUser() {
-        ClientDTO dto = buildDTO("Find Me", "findme@svctest.com", "France", "F");
-        ClientDTO created = clientService.createUser(dto);
+        ClientDTO created = clientService.createUser(buildDTO("Find Me", "findme@svctest.com", "France", "F"));
         clientId = created.getId();
 
         ClientDTO found = clientService.findUser(clientId);
@@ -114,30 +114,25 @@ public class ClientServiceTest {
 
     @Test
     public void testUpdateUser() {
-        ClientDTO dto = buildDTO("Old Name", "old@svctest.com", "France", "M");
-        ClientDTO created = clientService.createUser(dto);
+        ClientDTO created = clientService.createUser(buildDTO("Old Name", "old@svctest.com", "France", "M"));
         clientId = created.getId();
 
-        ClientDTO updateDto = buildDTO("New Name", "old@svctest.com", "Belgique", "M");
-        ClientDTO updated = clientService.updateUser(clientId, updateDto);
-
+        ClientDTO updated = clientService.updateUser(clientId, buildDTO("New Name", "old@svctest.com", "Belgique", "M"));
         assertNotNull(updated);
-        assertEquals("New Name", updated.getName());
-        assertEquals("Belgique", updated.getCountry());
+        assertEquals("New Name",  updated.getName());
+        assertEquals("Belgique",  updated.getCountry());
     }
 
     @Test
     public void testUpdateUser_notFound() {
-        ClientDTO dto = buildDTO("Ghost", "ghost@svctest.com", "France", "M");
-        assertNull(clientService.updateUser(999999L, dto));
+        assertNull(clientService.updateUser(999999L, buildDTO("Ghost", "ghost@svctest.com", "France", "M")));
     }
 
     // ─── deleteUser ──────────────────────────────────────────────────────────
 
     @Test
     public void testDeleteUser() {
-        ClientDTO dto = buildDTO("To Delete", "del@svctest.com", "France", "M");
-        ClientDTO created = clientService.createUser(dto);
+        ClientDTO created = clientService.createUser(buildDTO("To Delete", "del@svctest.com", "France", "M"));
         Long id = created.getId();
 
         clientService.deleteUser(id);
@@ -148,8 +143,7 @@ public class ClientServiceTest {
 
     @Test
     public void testFindByEmail() {
-        ClientDTO dto = buildDTO("Email Test", "emailtest@svctest.com", "France", "F");
-        ClientDTO created = clientService.createUser(dto);
+        ClientDTO created = clientService.createUser(buildDTO("Email Test", "emailtest@svctest.com", "France", "F"));
         clientId = created.getId();
 
         ClientDTO found = clientService.findByEmail("emailtest@svctest.com");
@@ -161,30 +155,26 @@ public class ClientServiceTest {
 
     @Test
     public void testFindByCountry() {
-        ClientDTO dto = buildDTO("Country Test", "country@svctest.com", "Portugal", "M");
-        ClientDTO created = clientService.createUser(dto);
+        ClientDTO created = clientService.createUser(buildDTO("Country Test", "country@svctest.com", "Portugal", "M"));
         clientId = created.getId();
 
         List<ClientDTO> result = clientService.findByCountry("Portugal");
         assertFalse(result.isEmpty());
-        for (ClientDTO c : result) {
-            assertEquals("Portugal", c.getCountry());
-        }
+        for (ClientDTO c : result) assertEquals("Portugal", c.getCountry());
     }
 
     // ─── findByCriteria (CriteriaQuery) ──────────────────────────────────────
 
     @Test
     public void testFindByCriteria() {
-        ClientDTO dto = buildDTO("Criteria Test", "criteria@svctest.com", "Espagne", "F");
-        ClientDTO created = clientService.createUser(dto);
+        ClientDTO created = clientService.createUser(buildDTO("Criteria Test", "criteria@svctest.com", "Espagne", "F"));
         clientId = created.getId();
 
         List<ClientDTO> result = clientService.findByCriteria("Espagne", "F");
         assertFalse(result.isEmpty());
         for (ClientDTO c : result) {
             assertEquals("Espagne", c.getCountry());
-            assertEquals("F", c.getSexe());
+            assertEquals("F",       c.getSexe());
         }
     }
 
@@ -192,56 +182,30 @@ public class ClientServiceTest {
 
     @Test
     public void testAddClientToGroupe() {
-        ClientDTO dto = buildDTO("Groupe Client", "groupeclient@svctest.com", "France", "M");
-        ClientDTO created = clientService.createUser(dto);
+        ClientDTO created = clientService.createUser(buildDTO("Groupe Client", "groupeclient@svctest.com", "France", "M"));
         clientId = created.getId();
 
-        Groupe groupe = new Groupe("Test Groupe Service");
-        groupe.setColor("#123456");
-
-        // AJOUT CRUCIAL : Association du groupe à l'utilisateur existant
-        groupe.setUser(testUser);
-
-        groupeDAO.save(groupe);
-        groupeId = groupe.getId();
+        createGroupe("Test Groupe Service");
 
         ClientGroupeDTO result = clientService.addClientToGroupe(clientId, groupeId);
-
         assertNotNull(result);
-        assertEquals(clientId, result.getClientId());
-        assertEquals(groupeId, result.getGroupeId());
+        assertEquals(clientId,  result.getClientId());
+        assertEquals(groupeId,  result.getGroupeId());
         assertNotNull("dateAdd doit être renseignée", result.getDateAdd());
     }
 
     @Test
     public void testAddClientToGroupe_clientInexistant() {
-        Groupe groupe = new Groupe("Ghost Groupe");
-        groupe.setColor("#000000");
-
-        // AJOUT CRUCIAL : Association du groupe à l'utilisateur existant
-        groupe.setUser(testUser);
-
-        groupeDAO.save(groupe);
-        groupeId = groupe.getId();
-
-        ClientGroupeDTO result = clientService.addClientToGroupe(999999L, groupeId);
-        assertNull("Client inexistant doit retourner null", result);
+        createGroupe("Ghost Groupe");
+        assertNull("Client inexistant doit retourner null",
+                clientService.addClientToGroupe(999999L, groupeId));
     }
 
     @Test
     public void testGetGroupesOfClient() {
-        ClientDTO dto = buildDTO("Multi Groupe", "multigroupe@svctest.com", "France", "M");
-        ClientDTO created = clientService.createUser(dto);
+        ClientDTO created = clientService.createUser(buildDTO("Multi Groupe", "multigroupe@svctest.com", "France", "M"));
         clientId = created.getId();
-
-        Groupe groupe = new Groupe("Mon Groupe");
-        groupe.setColor("#ABCDEF");
-
-        // AJOUT CRUCIAL : Association du groupe à l'utilisateur existant
-        groupe.setUser(testUser);
-
-        groupeDAO.save(groupe);
-        groupeId = groupe.getId();
+        createGroupe("Mon Groupe");
 
         clientService.addClientToGroupe(clientId, groupeId);
 
@@ -252,7 +216,79 @@ public class ClientServiceTest {
 
     @Test
     public void testGetGroupesOfClient_inexistant() {
-        List<ClientGroupeDTO> result = clientService.getGroupesOfClient(999999L);
-        assertTrue(result.isEmpty());
+        assertTrue(clientService.getGroupesOfClient(999999L).isEmpty());
+    }
+
+    // ─── NOUVEAU : removeClientFromGroupe ────────────────────────────────────
+
+    @Test
+    public void testRemoveClientFromGroupe() {
+        ClientDTO created = clientService.createUser(buildDTO("Remove Test", "remove@svctest.com", "France", "M"));
+        clientId = created.getId();
+        createGroupe("Groupe Remove");
+
+        // Ajouter puis retirer
+        clientService.addClientToGroupe(clientId, groupeId);
+        clientService.removeClientFromGroupe(clientId, groupeId);
+
+        // Le client ne doit plus apparaître dans le groupe
+        List<ClientGroupeDTO> groupes = clientService.getGroupesOfClient(clientId);
+        boolean stillInGroupe = groupes.stream()
+                .anyMatch(cg -> cg.getGroupeId().equals(groupeId));
+        assertFalse("Le client ne doit plus appartenir au groupe", stillInGroupe);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testRemoveClientFromGroupe_clientInexistant() {
+        createGroupe("Groupe Test");
+        clientService.removeClientFromGroupe(999999L, groupeId);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testRemoveClientFromGroupe_groupeInexistant() {
+        ClientDTO created = clientService.createUser(buildDTO("No Groupe", "nogroupe@svctest.com", "France", "M"));
+        clientId = created.getId();
+        clientService.removeClientFromGroupe(clientId, 999999L);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testRemoveClientFromGroupe_associationInexistante() {
+        ClientDTO created = clientService.createUser(buildDTO("Not In", "notin@svctest.com", "France", "M"));
+        clientId = created.getId();
+        createGroupe("Groupe Sans Client");
+
+        // Le client n'est pas dans le groupe → RuntimeException
+        clientService.removeClientFromGroupe(clientId, groupeId);
+    }
+
+    // ─── NOUVEAU : findClientsNotInGroupe ─────────────────────────────────────
+
+    @Test
+    public void testFindClientsNotInGroupe() {
+        // Créer 2 clients
+        ClientDTO c1 = clientService.createUser(buildDTO("In Groupe",    "ingroupe@svctest.com",    "France", "M"));
+        ClientDTO c2 = clientService.createUser(buildDTO("Not In Groupe","notingroupe@svctest.com", "France", "F"));
+        clientId = c1.getId(); // tearDown supprimera celui-là
+
+        createGroupe("Groupe Partiel");
+
+        // Ajouter seulement c1 au groupe
+        clientService.addClientToGroupe(c1.getId(), groupeId);
+
+        // c2 ne doit pas être dans le groupe
+        List<ClientDTO> notIn = clientService.findClientsNotInGroupe(groupeId, testUserId);
+        boolean c1Present = notIn.stream().anyMatch(c -> c.getId().equals(c1.getId()));
+        boolean c2Present = notIn.stream().anyMatch(c -> c.getId().equals(c2.getId()));
+
+        assertFalse("c1 (dans le groupe) ne doit pas apparaître", c1Present);
+        assertTrue("c2 (hors groupe) doit apparaître",             c2Present);
+
+        // Nettoyage manuel du 2e client
+        clientService.deleteUser(c2.getId());
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testFindClientsNotInGroupe_groupeInexistant() {
+        clientService.findClientsNotInGroupe(999999L, testUserId);
     }
 }

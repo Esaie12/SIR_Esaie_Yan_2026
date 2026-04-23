@@ -26,11 +26,11 @@ public class ClientDAO extends AbstractJpaDao<Long, Client> {
     	 
         return result.isEmpty() ? null : result.get(0);
     }
-    
+
     public List<Client> findByUserId(Long userId) {
         return entityManager.createQuery(
-                "SELECT c FROM Client c WHERE c.user.id = :userId",
-                Client.class)
+                        "SELECT c FROM Client c WHERE c.user.id = :userId",
+                        Client.class)
                 .setParameter("userId", userId)
                 .getResultList();
     }
@@ -64,32 +64,27 @@ public class ClientDAO extends AbstractJpaDao<Long, Client> {
                 .getResultList();
     }
 
-    /**
-     * Recherche dynamique multi-critères : country et/ou sexe.
-     * Les paramètres null sont ignorés.
-     *
-     * Exemple :
-     *   findByCriteria("France", "M")  → clients français masculins
-     *   findByCriteria("France", null) → tous les clients français
-     *   findByCriteria(null, "F")      → toutes les clientes
-     */
     public List<Client> findByCriteria(String country, String sexe) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Client> cq = cb.createQuery(Client.class);
         Root<Client> root = cq.from(Client.class);
 
         List<Predicate> predicates = new ArrayList<>();
-
-        if (country != null && !country.isBlank()) {
+        if (country != null && !country.isBlank())
             predicates.add(cb.equal(root.get("country"), country));
-        }
-        if (sexe != null && !sexe.isBlank()) {
+        if (sexe != null && !sexe.isBlank())
             predicates.add(cb.equal(root.get("sexe"), sexe));
-        }
 
         cq.where(predicates.toArray(new Predicate[0]));
         cq.orderBy(cb.asc(root.get("name")));
-
         return entityManager.createQuery(cq).getResultList();
+    }
+
+    public long countByUserId(Long userId) {
+        return entityManager.createQuery(
+                        "SELECT COUNT(c) FROM Client c WHERE c.user.id = :userId",
+                        Long.class)
+                .setParameter("userId", userId)
+                .getSingleResult();
     }
 }

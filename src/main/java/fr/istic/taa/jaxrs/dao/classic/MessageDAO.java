@@ -12,7 +12,6 @@ public class MessageDAO extends AbstractJpaDao<Long, Message> {
         setClazz(Message.class);
     }
 
-    // @NamedQuery
     public List<Message> findByUserId(Long userId) {
         return entityManager
                 .createNamedQuery("Message.findByUser", Message.class)
@@ -20,7 +19,6 @@ public class MessageDAO extends AbstractJpaDao<Long, Message> {
                 .getResultList();
     }
 
-    // @NamedQuery
     public List<Message> findByGroupeId(Long groupeId) {
         return entityManager
                 .createNamedQuery("Message.findByGroupe", Message.class)
@@ -28,7 +26,6 @@ public class MessageDAO extends AbstractJpaDao<Long, Message> {
                 .getResultList();
     }
 
-    // @NamedQuery
     public List<Message> findByTitle(String keyword) {
         return entityManager
                 .createNamedQuery("Message.findByTitle", Message.class)
@@ -36,7 +33,6 @@ public class MessageDAO extends AbstractJpaDao<Long, Message> {
                 .getResultList();
     }
 
-    // JPQL classique avec limite
     public List<Message> findRecentMessages(int limit) {
         return entityManager.createQuery(
                         "SELECT m FROM Message m ORDER BY m.dateSend DESC",
@@ -45,7 +41,6 @@ public class MessageDAO extends AbstractJpaDao<Long, Message> {
                 .getResultList();
     }
 
-    // Bulk delete — transaction explicite obligatoire pour executeUpdate()
     public int deleteByUser(Long userId) {
         EntityTransaction tx = entityManager.getTransaction();
         tx.begin();
@@ -57,7 +52,6 @@ public class MessageDAO extends AbstractJpaDao<Long, Message> {
         return deleted;
     }
 
-    // Bulk delete par groupe — transaction explicite obligatoire
     public int deleteByGroupe(Long groupeId) {
         EntityTransaction tx = entityManager.getTransaction();
         tx.begin();
@@ -68,7 +62,7 @@ public class MessageDAO extends AbstractJpaDao<Long, Message> {
         tx.commit();
         return deleted;
     }
-    
+
     
     public List<Message> findBySender(Long senderId) {
         return entityManager.createQuery(
@@ -76,5 +70,14 @@ public class MessageDAO extends AbstractJpaDao<Long, Message> {
                 Message.class)
             .setParameter("senderId", senderId)
             .getResultList();
+  
+  }
+
+    public long countSentByUserId(Long userId) {
+        return entityManager.createQuery(
+                        "SELECT COUNT(m) FROM Message m WHERE m.sender.id = :userId",
+                        Long.class)
+                .setParameter("userId", userId)
+                .getSingleResult();
     }
 }

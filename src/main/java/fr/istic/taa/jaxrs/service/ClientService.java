@@ -16,8 +16,8 @@ import java.util.stream.Collectors;
 
 public class ClientService {
 
-    private final ClientDAO clientDAO = new ClientDAO();
-    private final GroupeDAO groupeDAO = new GroupeDAO();
+    private final ClientDAO  clientDAO  = new ClientDAO();
+    private final GroupeDAO  groupeDAO  = new GroupeDAO();
     private final AccountDAO accountDAO = new AccountDAO();
 
     public ClientDTO toDTO(Client client) {
@@ -48,23 +48,17 @@ public class ClientService {
     public List<ClientDTO> findAllUsers() {
         List<Client> clients = clientDAO.findAll();
         List<ClientDTO> result = new ArrayList<>();
-        for (Client client : clients) {
-            result.add(toDTO(client));
-        }
+        for (Client client : clients) result.add(toDTO(client));
         return result;
     }
 
     public List<ClientDTO> getClientsByUser(Long userId) {
         return clientDAO.findByUserId(userId)
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+                .stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public ClientDTO createUser(ClientDTO dto) {
         Client client = toEntity(dto);
-
-        // Récupération et assignation du User obligatoire
         if (dto.getUserId() != null) {
             Users user = accountDAO.findUserById(dto.getUserId());
             if (user == null) throw new RuntimeException("Utilisateur introuvable");
@@ -72,7 +66,6 @@ public class ClientService {
         } else {
             throw new RuntimeException("userId est requis pour créer un client");
         }
-
         clientDAO.save(client);
         return toDTO(client);
     }
@@ -94,12 +87,8 @@ public class ClientService {
     }
 
     public List<ClientDTO> findByGroupe(Long groupeId) {
-        List<Client> clients = clientDAO.findByGroupe(groupeId);
-        List<ClientDTO> result = new ArrayList<>();
-        for (Client client : clients) {
-            result.add(toDTO(client));
-        }
-        return result;
+        return clientDAO.findByGroupe(groupeId).stream()
+                .map(this::toDTO).collect(Collectors.toList());
     }
 
     public ClientDTO findByEmail(String email) {
@@ -107,21 +96,13 @@ public class ClientService {
     }
 
     public List<ClientDTO> findByCountry(String country) {
-        List<Client> clients = clientDAO.findByCountry(country);
-        List<ClientDTO> result = new ArrayList<>();
-        for (Client client : clients) {
-            result.add(toDTO(client));
-        }
-        return result;
+        return clientDAO.findByCountry(country).stream()
+                .map(this::toDTO).collect(Collectors.toList());
     }
 
     public List<ClientDTO> findByCriteria(String country, String sexe) {
-        List<Client> clients = clientDAO.findByCriteria(country, sexe);
-        List<ClientDTO> result = new ArrayList<>();
-        for (Client client : clients) {
-            result.add(toDTO(client));
-        }
-        return result;
+        return clientDAO.findByCriteria(country, sexe).stream()
+                .map(this::toDTO).collect(Collectors.toList());
     }
 
     public ClientGroupeDTO addClientToGroupe(Long clientId, Long groupeId) {
@@ -137,18 +118,47 @@ public class ClientService {
                 client.getName(), groupe.getLibelle());
     }
 
+    // ─── retirer un client d'un groupe ────────────────────────────
+
+    public void removeClientFromGroupe(Long clientId, Long groupeId) {
+        Client client = clientDAO.findOne(clientId);
+        if (client == null) throw new RuntimeException("Client introuvable");
+
+        Groupe groupe = groupeDAO.findOne(groupeId);
+        if (groupe == null) throw new RuntimeException("Groupe introuvable");
+
+        ClientGroupe toRemove = client.getClientGroupes().stream()
+                .filter(cg -> cg.getGroupe().getId().equals(groupeId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(
+                        "Ce client n'appartient pas au groupe " + groupeId));
+
+        client.getClientGroupes().remove(toRemove);
+        clientDAO.update(client);
+    }
+
+    // ─── clients d'un user n'étant pas dans un groupe ─────────────
+
+    public List<ClientDTO> findClientsNotInGroupe(Long groupeId, Long userId) {
+        Groupe groupe = groupeDAO.findOne(groupeId);
+        if (groupe == null) throw new RuntimeException("Groupe introuvable");
+
+        return clientDAO.findByUserId(userId).stream()
+                .filter(client -> client.getClientGroupes().stream()
+                        .noneMatch(cg -> cg.getGroupe().getId().equals(groupeId)))
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
     public List<ClientGroupeDTO> getGroupesOfClient(Long clientId) {
         Client client = clientDAO.findOne(clientId);
         if (client == null) return new ArrayList<>();
 
-        List<ClientGroupeDTO> result = new ArrayList<>();
-        for (ClientGroupe cg : client.getClientGroupes()) {
-            result.add(new ClientGroupeDTO(
-                    cg.getClient().getId(), cg.getGroupe().getId(),
-                    cg.getDateAdd(), cg.getClient().getName(),
-                    cg.getGroupe().getLibelle()
-            ));
-        }
-        return result;
+        return client.getClientGroupes().stream()
+                .map(cg -> new ClientGroupeDTO(
+                        cg.getClient().getId(), cg.getGroupe().getId(),
+                        cg.getDateAdd(), cg.getClient().getName(),
+                        cg.getGroupe().getLibelle()))
+                .collect(Collectors.toList());
     }
 }

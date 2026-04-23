@@ -31,4 +31,12 @@ public class GroupeDAO extends AbstractJpaDao<Long, Groupe> {
                 .setParameter("userId", userId)
                 .getResultList();
     }
+
+    public long countByUserId(Long userId) {
+        return entityManager.createQuery(
+                        "SELECT COUNT(g) FROM Groupe g WHERE g.user.id = :userId",
+                        Long.class)
+                .setParameter("userId", userId)
+                .getSingleResult();
+    }
 }

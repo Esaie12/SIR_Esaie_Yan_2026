@@ -81,15 +81,15 @@ public class GroupeResource {
         GroupeDTO created = groupeService.createGroupe(dto);
         return Response.status(201).entity(ApiResponse.created(created)).build();
     }
-    
+
     @GET
     @Path("/by-user/{userId}")
+    @Operation(summary = "Lister les groupes d'un utilisateur")
     public Response getGroupesOfUser(@PathParam("userId") Long userId) {
         try {
             return Response.ok(ApiResponse.ok(groupeService.getGroupesByUser(userId))).build();
         } catch (RuntimeException e) {
-            return Response.status(404)
-                    .entity(ApiResponse.notFound(e.getMessage())).build();
+            return Response.status(404).entity(ApiResponse.notFound(e.getMessage())).build();
         }
     }
 
@@ -149,5 +149,52 @@ public class GroupeResource {
             @Parameter(description = "ID du groupe", required = true) @PathParam("id") Long id) {
         List<ClientDTO> list = clientService.findByGroupe(id);
         return Response.ok(ApiResponse.ok(list)).build();
+    }
+
+    @DELETE
+    @Path("/{groupeId}/clients/{clientId}")
+    @Operation(
+            summary     = "Retirer un client d'un groupe",
+            description = "Supprime l'association entre le client et le groupe identifiés."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "204", description = "Client retiré du groupe"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404", description = "Client, groupe ou association introuvable")
+    })
+    public Response removeClientFromGroupe(
+            @Parameter(description = "ID du groupe",  required = true) @PathParam("groupeId")  Long groupeId,
+            @Parameter(description = "ID du client",  required = true) @PathParam("clientId")  Long clientId) {
+        try {
+            clientService.removeClientFromGroupe(clientId, groupeId);
+            return Response.status(204).entity(ApiResponse.noContent()).build();
+        } catch (RuntimeException e) {
+            return Response.status(404).entity(ApiResponse.notFound(e.getMessage())).build();
+        }
+    }
+
+    @GET
+    @Path("/{groupeId}/clients/not-in/user/{userId}")
+    @Operation(
+            summary     = "Clients d'un user n'appartenant pas à un groupe",
+            description = "Retourne les clients créés par l'utilisateur qui ne sont pas membres du groupe."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200", description = "Liste des clients hors groupe",
+                    content = @Content(schema = @Schema(implementation = ClientDTO.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404", description = "Groupe ou utilisateur introuvable")
+    })
+    public Response getClientsNotInGroupe(
+            @Parameter(description = "ID du groupe",      required = true) @PathParam("groupeId") Long groupeId,
+            @Parameter(description = "ID de l'utilisateur", required = true) @PathParam("userId")   Long userId) {
+        try {
+            List<ClientDTO> list = clientService.findClientsNotInGroupe(groupeId, userId);
+            return Response.ok(ApiResponse.ok(list)).build();
+        } catch (RuntimeException e) {
+            return Response.status(404).entity(ApiResponse.notFound(e.getMessage())).build();
+        }
     }
 }

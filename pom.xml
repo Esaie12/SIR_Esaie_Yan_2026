@@ -88,12 +88,19 @@
 			<version>2.2.15</version>
 		</dependency>
 
-		<!-- ✅ AJOUTÉ : Swagger UI — interface web pour tester l'API -->
+		<!-- Swagger UI — interface web pour tester l'API -->
 		<!-- Accessible sur http://localhost:8080/swagger-ui/index.html -->
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>swagger-ui</artifactId>
 			<version>5.17.14</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>rest-assured</artifactId>
+			<version>5.4.0</version>
+			<scope>test</scope>
 		</dependency>
 
 	</dependencies>

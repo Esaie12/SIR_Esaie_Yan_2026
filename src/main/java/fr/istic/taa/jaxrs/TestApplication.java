@@ -19,10 +19,7 @@ package fr.istic.taa.jaxrs;
 import java.util.HashSet;
 import java.util.Set;
 
-import fr.istic.taa.jaxrs.rest.AccountResource;
-import fr.istic.taa.jaxrs.rest.ClientResource;
-import fr.istic.taa.jaxrs.rest.GroupeResource;
-import fr.istic.taa.jaxrs.rest.MessageResource;
+import fr.istic.taa.jaxrs.rest.*;
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
@@ -41,6 +38,7 @@ public class TestApplication extends Application {
         clazzes.add(GroupeResource.class);
         clazzes.add(AccountResource.class);
         clazzes.add(MessageResource.class);
+        clazzes.add(DashboardResource.class);
         clazzes.add(JacksonConfig.class);
         clazzes.add(CorsFilter.class);
         clazzes.add(CorsRequestFilter.class);

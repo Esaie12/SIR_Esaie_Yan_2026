@@ -38,27 +38,33 @@ public class Message implements Serializable {
     private Users user;
 
     @ManyToOne
+    @JoinColumn(name = "sender_id", nullable = false)
+    private Users sender;
+
+    @ManyToOne
     @JoinColumn(name = "groupe_id", nullable = true)
     private Groupe groupe;
 
     public Message() {}
 
     // Constructeur envoi à un User
-    public Message(String title, String content, LocalDateTime dateSend, Users user) {
+    public Message(String title, String content, LocalDateTime dateSend, Users user, Users sender) {
         this.title    = title;
         this.content  = content;
         this.dateSend = dateSend;
         this.user     = user;
+        this.sender   = sender;
         this.groupe   = null;
     }
 
     // Constructeur envoi à un Groupe
-    public Message(String title, String content, LocalDateTime dateSend, Groupe groupe) {
+    public Message(String title, String content, LocalDateTime dateSend, Groupe groupe, Users sender) {
         this.title    = title;
         this.content  = content;
         this.dateSend = dateSend;
         this.groupe   = groupe;
         this.user     = null;
+        this.sender   = sender;
     }
 
     public Long getId() { return id; }
@@ -78,4 +84,7 @@ public class Message implements Serializable {
 
     public Groupe getGroupe() { return groupe; }
     public void setGroupe(Groupe groupe) { this.groupe = groupe; }
+
+    public Users getSender() { return sender; }
+    public void setSender(Users sender) { this.sender = sender; }
 }

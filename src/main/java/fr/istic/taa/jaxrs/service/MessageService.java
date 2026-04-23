@@ -27,11 +27,10 @@ public class MessageService {
         dto.setDateSend(message.getDateSend());
         // L'un des deux sera null selon le type de destinataire
         dto.setUserId(message.getUser()   != null ? message.getUser().getId()   : null);
+        dto.setSenderId(message.getSender() != null ? message.getSender().getId() : null);
         dto.setGroupeId(message.getGroupe() != null ? message.getGroupe().getId() : null);
         return dto;
     }
-
-    // ─── CRUD ───────────────────────────────────────────────────────────────
 
     /**
      * Crée un message destiné à un User (groupeId null)
@@ -49,17 +48,24 @@ public class MessageService {
         if (hasUser && hasGroupe) {
             throw new RuntimeException("userId et groupeId ne peuvent pas être renseignés en même temps");
         }
+        if (dto.getSenderId() == null) {
+            throw new RuntimeException("senderId est obligatoire pour envoyer un message");
+        }
+        Users sender = accountDAO.findUserById(dto.getSenderId());
+        if (sender == null) {
+            throw new RuntimeException("Expéditeur (sender) introuvable");
+        }
 
         Message message;
 
         if (hasUser) {
             Users user = accountDAO.findUserById(dto.getUserId());
-            if (user == null) throw new RuntimeException("Utilisateur introuvable");
-            message = new Message(dto.getTitle(), dto.getContent(), dto.getDateSend(), user);
+            if (user == null) throw new RuntimeException("Utilisateur destinataire introuvable");
+            message = new Message(dto.getTitle(), dto.getContent(), dto.getDateSend(), user, sender);
         } else {
             Groupe groupe = groupeDAO.findOne(dto.getGroupeId());
             if (groupe == null) throw new RuntimeException("Groupe introuvable");
-            message = new Message(dto.getTitle(), dto.getContent(), dto.getDateSend(), groupe);
+            message = new Message(dto.getTitle(), dto.getContent(), dto.getDateSend(), groupe, sender);
         }
 
         messageDAO.save(message);

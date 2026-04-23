@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @NamedQueries({
         @NamedQuery(
                 name  = "Message.findByUser",
-                query = "SELECT m FROM Message m WHERE m.user.id = :userId ORDER BY m.dateSend DESC"
+                query = "SELECT m FROM Message m WHERE m.client.id = :userId ORDER BY m.dateSend DESC"
         ),
         @NamedQuery(
                 name  = "Message.findByGroupe",
@@ -34,8 +34,8 @@ public class Message implements Serializable {
     // Destinataire : soit un user direct (groupe = null),
     //                soit un groupe entier (user = null)
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = true)
-    private Users user;
+    @JoinColumn(name = "client_id", nullable = true)
+    private Client client;
 
     @ManyToOne
     @JoinColumn(name = "sender_id", nullable = false)
@@ -48,11 +48,11 @@ public class Message implements Serializable {
     public Message() {}
 
     // Constructeur envoi à un User
-    public Message(String title, String content, LocalDateTime dateSend, Users user, Users sender) {
+    public Message(String title, String content, LocalDateTime dateSend, Client c, Users sender) {
         this.title    = title;
         this.content  = content;
         this.dateSend = dateSend;
-        this.user     = user;
+        this.client  = c;
         this.sender   = sender;
         this.groupe   = null;
     }
@@ -63,7 +63,7 @@ public class Message implements Serializable {
         this.content  = content;
         this.dateSend = dateSend;
         this.groupe   = groupe;
-        this.user     = null;
+        this.client     = null;
         this.sender   = sender;
     }
 
@@ -79,8 +79,8 @@ public class Message implements Serializable {
     public LocalDateTime getDateSend() { return dateSend; }
     public void setDateSend(LocalDateTime dateSend) { this.dateSend = dateSend; }
 
-    public Users getUser() { return user; }
-    public void setUser(Users user) { this.user = user; }
+    public Client getClient() { return client; }
+    public void setUser(Client c) { this.client = c; }
 
     public Groupe getGroupe() { return groupe; }
     public void setGroupe(Groupe groupe) { this.groupe = groupe; }

@@ -55,15 +55,13 @@ public class Users extends Account {
 	
 	public void addClient(Client client) {
 	    clients.add(client);
-	    client.setUser(this);
 	}
 
 	public void removeClient(Client client) {
 	    clients.remove(client);
-	    client.setUser(null);
 	}
 	
-	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Message> messages = new ArrayList<>();
 
 	public List<Message> getMessages() {
@@ -76,7 +74,7 @@ public class Users extends Account {
 
 	public void addMessage(Message message) {
 	    messages.add(message);
-	    message.setUser(this);
+	    message.setSender(this);
 	}
 
 	public void removeMessage(Message message) {

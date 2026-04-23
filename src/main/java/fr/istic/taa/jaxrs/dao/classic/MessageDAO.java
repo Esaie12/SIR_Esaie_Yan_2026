@@ -63,6 +63,16 @@ public class MessageDAO extends AbstractJpaDao<Long, Message> {
         return deleted;
     }
 
+    
+    public List<Message> findBySender(Long senderId) {
+        return entityManager.createQuery(
+                "SELECT m FROM Message m WHERE m.sender.id = :senderId ORDER BY m.dateSend DESC",
+                Message.class)
+            .setParameter("senderId", senderId)
+            .getResultList();
+  
+  }
+
     public long countSentByUserId(Long userId) {
         return entityManager.createQuery(
                         "SELECT COUNT(m) FROM Message m WHERE m.sender.id = :userId",

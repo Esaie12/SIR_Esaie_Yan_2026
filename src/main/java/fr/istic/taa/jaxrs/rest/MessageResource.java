@@ -59,6 +59,18 @@ public class MessageResource {
         List<MessageDTO> list = messageService.getMessagesByGroupe(groupeId);
         return Response.ok(ApiResponse.ok(list)).build();
     }
+    
+    @GET
+    public Response getMesMessages(
+            @Parameter(description = "ID de l'utilisateur destinataire") @QueryParam("senderId")   Long senderId) {
+
+        if (senderId == null) 
+            return Response.status(400)
+                    .entity(ApiResponse.error("userId ou groupeId est requis")).build();
+
+        List<MessageDTO> list = messageService.getMesMessages(senderId);
+        return Response.ok(ApiResponse.ok(list)).build();
+    }
 
     @POST
     @Operation(
@@ -102,4 +114,7 @@ public class MessageResource {
         messageService.deleteMessage(id);
         return Response.status(204).entity(ApiResponse.noContent()).build();
     }
+    
+    
+    
 }

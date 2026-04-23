@@ -2,7 +2,7 @@ package fr.istic.taa.jaxrs.dao.classic;
 
 import fr.istic.taa.jaxrs.dao.AbstractJpaDao;
 import fr.istic.taa.jaxrs.entity.Client;
-
+import fr.istic.taa.jaxrs.entity.Users;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
@@ -15,6 +15,16 @@ public class ClientDAO extends AbstractJpaDao<Long, Client> {
 
     public ClientDAO() {
         setClazz(Client.class);
+    }
+    
+    public Client findClientById(Long id) {
+    	 List<Client> result = entityManager.createQuery(
+                 "SELECT c FROM Client c WHERE c.id = :id",
+                 Client.class)
+         .setParameter("id", id)
+         .getResultList();
+    	 
+        return result.isEmpty() ? null : result.get(0);
     }
 
     public List<Client> findByUserId(Long userId) {

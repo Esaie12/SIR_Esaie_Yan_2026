@@ -32,8 +32,6 @@ public class MessageService {
         return dto;
     }
 
-    // ─── CRUD ───────────────────────────────────────────────────────────────
-
     /**
      * Crée un message destiné à un User (groupeId null)
      * ou à un Groupe entier (userId null).

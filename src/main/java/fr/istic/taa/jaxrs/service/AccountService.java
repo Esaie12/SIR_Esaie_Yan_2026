@@ -25,6 +25,7 @@ public class AccountService {
         dto.setFirstname(account.getFirstname());
         dto.setLastname(account.getLastname());
         dto.setType(account.getClass().getSimpleName().toUpperCase());
+        dto.setId(account.getId());
         return dto;
     }
 

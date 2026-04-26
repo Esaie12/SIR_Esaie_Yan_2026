@@ -1,7 +1,9 @@
 package fr.istic.taa.jaxrs.dao;
 
 import fr.istic.taa.jaxrs.dao.classic.AccountDAO;
+import fr.istic.taa.jaxrs.dao.classic.ClientDAO;
 import fr.istic.taa.jaxrs.dao.classic.MessageDAO;
+import fr.istic.taa.jaxrs.entity.Client;
 import fr.istic.taa.jaxrs.entity.Message;
 import fr.istic.taa.jaxrs.entity.Users;
 import org.junit.After;
@@ -17,16 +19,21 @@ public class MessageDAOTest {
 
     private MessageDAO messageDAO;
     private AccountDAO accountDAO;
+    private ClientDAO clientDAO;
     private Users testUser;   // destinataire
+    private Client testClient;
     private Users testSender; // expéditeur (obligatoire depuis la refonte Message)
 
     @Before
     public void setUp() {
         messageDAO = new MessageDAO();
         accountDAO = new AccountDAO();
+        clientDAO = new ClientDAO();
 
         testUser   = new Users("msguser@test.com",   "pass", "Msg",    "User",   false, LocalDateTime.now());
         testSender = new Users("msgsender@test.com", "pass", "Sender", "User",   false, LocalDateTime.now());
+       // testClient = new Client("Marie Curie", "marie@lab.fr", "0600000001", "Paris", "France",  "F",  );
+        
         accountDAO.save(testUser);
         accountDAO.save(testSender);
     }
@@ -57,7 +64,7 @@ public class MessageDAOTest {
         assertNotNull(found);
         assertEquals("Titre test",  found.getTitle());
         assertEquals("Contenu test", found.getContent());
-        assertEquals(testUser.getId(),   found.getUser().getId());
+        assertEquals(testUser.getId(),   found.getClient().getId());
         assertEquals(testSender.getId(), found.getSender().getId());
     }
 

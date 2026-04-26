@@ -61,12 +61,23 @@ public class MessageResource {
     }
     
     @GET
+    @Operation(
+            summary     = "Lister les messages d'un destinataire",
+            description = "Fournir senderId "
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200", description = "Liste des messages",
+                    content = @Content(schema = @Schema(implementation = MessageDTO.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400", description = "senderId requis")
+    })
     public Response getMesMessages(
             @Parameter(description = "ID de l'utilisateur destinataire") @QueryParam("senderId")   Long senderId) {
 
         if (senderId == null) 
             return Response.status(400)
-                    .entity(ApiResponse.error("userId ou groupeId est requis")).build();
+                    .entity(ApiResponse.error("senderId est requis")).build();
 
         List<MessageDTO> list = messageService.getMesMessages(senderId);
         return Response.ok(ApiResponse.ok(list)).build();

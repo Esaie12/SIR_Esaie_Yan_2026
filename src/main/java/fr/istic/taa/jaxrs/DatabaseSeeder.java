@@ -117,11 +117,11 @@ public class DatabaseSeeder {
 
             // ── 9. Messages ───────────────────────────────────────────────────
             // Alice → Bob (message direct)
-            em.persist(new Message(
+            /*em.persist(new Message(
                     "Bienvenue",
                     "Bonjour Bob, bienvenue sur la plateforme !",
                     LocalDateTime.now().minusDays(5),
-                    bob, alice));
+                    bob, alice));*/
 
             // Alice → groupe VIP
             em.persist(new Message(
@@ -138,11 +138,11 @@ public class DatabaseSeeder {
                     gFrance, alice));
 
             // Bob → Alice (message direct)
-            em.persist(new Message(
+            /*em.persist(new Message(
                     "Re: Bienvenue",
                     "Merci Alice, ravi d'être ici !",
                     LocalDateTime.now().minusDays(4),
-                    alice, bob));
+                    alice, bob));*/
 
             // Bob → groupe Europe
             em.persist(new Message(

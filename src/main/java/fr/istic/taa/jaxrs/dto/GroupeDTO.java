@@ -17,14 +17,23 @@ public class GroupeDTO {
 
     private String color;
 
+    /** Nombre de clients membres du groupe — calculé côté service, lecture seule. */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private int memberCount;
+
     public GroupeDTO() {}
 
     public GroupeDTO(Long id, String libelle, LocalDateTime dateCreate, String color, Long userId) {
-        this.id = id;
-        this.libelle = libelle;
+        this.id         = id;
+        this.libelle    = libelle;
         this.dateCreate = dateCreate;
-        this.color = color;
-        this.userId = userId;
+        this.color      = color;
+        this.userId     = userId;
+    }
+
+    public GroupeDTO(Long id, String libelle, LocalDateTime dateCreate, String color, Long userId, int memberCount) {
+        this(id, libelle, dateCreate, color, userId);
+        this.memberCount = memberCount;
     }
 
     public Long getId() { return id; }
@@ -38,7 +47,10 @@ public class GroupeDTO {
 
     public String getColor() { return color; }
     public void setColor(String color) { this.color = color; }
-    
+
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
+
+    public int getMemberCount() { return memberCount; }
+    public void setMemberCount(int memberCount) { this.memberCount = memberCount; }
 }

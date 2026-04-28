@@ -16,21 +16,20 @@ public class AccountService {
 
     private final AccountDAO accountDAO = new AccountDAO();
 
-    // ─── Mapping entité → DTO ───────────────────────────────────────────────
-
+    // ─── Convertit une entité Account en DTO pour l'envoyer au client ───────
     public AccountDTO toDTO(Account account) {
         if (account == null) return null;
         AccountDTO dto = new AccountDTO();
         dto.setEmail(account.getEmail());
         dto.setFirstname(account.getFirstname());
         dto.setLastname(account.getLastname());
+        // getSimpleName() retourne "Admin", "Moral", etc. → on met en majuscules
         dto.setType(account.getClass().getSimpleName().toUpperCase());
         dto.setId(account.getId());
         return dto;
     }
 
-    // ─── Mapping DTO → entité ───────────────────────────────────────────────
-
+    // ─── Convertit un DTO en entité selon le type fourni ────────────────────
     public Account toEntity(AccountDTO dto) {
         switch (dto.getType().toUpperCase()) {
             case "ADMIN":
@@ -52,12 +51,12 @@ public class AccountService {
         }
     }
 
-    // ─── CRUD ───────────────────────────────────────────────────────────────
-
+    // ─── Récupère un compte par son ID ──────────────────────────────────────
     public AccountDTO findAccount(Long id) {
         return toDTO(accountDAO.findOne(id));
     }
 
+    // ─── Récupère tous les comptes ───────────────────────────────────────────
     public List<AccountDTO> findAllAccounts() {
         List<Account> accounts = accountDAO.findAll();
         List<AccountDTO> result = new ArrayList<>();
@@ -67,6 +66,7 @@ public class AccountService {
         return result;
     }
 
+    // ─── Crée un nouveau compte (vérifie que l'email n'existe pas déjà) ─────
     public AccountDTO createAccount(AccountDTO dto) {
         if (accountDAO.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("Email déjà utilisé");
@@ -76,36 +76,40 @@ public class AccountService {
         return toDTO(account);
     }
 
+    // ─── Met à jour les infos d'un compte existant ───────────────────────────
     public AccountDTO updateAccount(Long id, AccountDTO dto) {
         Account existing = accountDAO.findOne(id);
         if (existing == null) return null;
         existing.setEmail(dto.getEmail());
         existing.setFirstname(dto.getFirstname());
         existing.setLastname(dto.getLastname());
+        // On ne change le mot de passe que s'il est fourni
         if (dto.getPassword() != null) {
             existing.setPassword(dto.getPassword());
         }
         return toDTO(accountDAO.update(existing));
     }
 
+    // ─── Supprime un compte par son ID ──────────────────────────────────────
     public void deleteAccount(Long id) {
         accountDAO.deleteById(id);
     }
 
-    // ─── Requêtes métier ────────────────────────────────────────────────────
-
+    // ─── Recherche un compte par son email ──────────────────────────────────
     public AccountDTO findByEmail(String email) {
         return toDTO(accountDAO.findByEmail(email));
     }
 
+    // ─── Vérifie les identifiants et retourne le compte si valides ──────────
     public AccountDTO login(String email, String password) {
         Account account = accountDAO.findByEmail(email);
         if (account == null) return null;
         if (!account.getPassword().equals(password)) return null;
-        accountDAO.update(account);
+        accountDAO.update(account); // met à jour lastLogin
         return toDTO(account);
     }
 
+    // ─── Retourne uniquement les utilisateurs actifs ─────────────────────────
     public List<AccountDTO> findActiveUsers() {
         List<Users> users = accountDAO.findActiveUsers();
         List<AccountDTO> result = new ArrayList<>();
@@ -115,6 +119,7 @@ public class AccountService {
         return result;
     }
 
+    // ─── Retourne tous les admins ────────────────────────────────────────────
     public List<AccountDTO> findAdmins() {
         List<Admin> admins = accountDAO.findAllAdmins();
         List<AccountDTO> result = new ArrayList<>();
@@ -124,6 +129,7 @@ public class AccountService {
         return result;
     }
 
+    // ─── Retourne tous les comptes de type Moral (entreprises) ───────────────
     public List<AccountDTO> findMoralAccounts() {
         List<Moral> morals = accountDAO.findAllMorals();
         List<AccountDTO> result = new ArrayList<>();
@@ -133,6 +139,7 @@ public class AccountService {
         return result;
     }
 
+    // ─── Retourne tous les comptes de type Physique (personnes) ─────────────
     public List<AccountDTO> findPhysiqueAccounts() {
         List<Physique> physiques = accountDAO.findAllPhysiques();
         List<AccountDTO> result = new ArrayList<>();

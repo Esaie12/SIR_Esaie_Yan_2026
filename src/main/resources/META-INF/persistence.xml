@@ -37,16 +37,9 @@
 
 		</properties>
 	</persistence-unit>
+
 	<persistence-unit name="postgres" transaction-type="RESOURCE_LOCAL">
 		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-
-		<class>fr.istic.taa.jaxrs.entity.Account</class>
-		<class>fr.istic.taa.jaxrs.entity.Users</class>
-		<class>fr.istic.taa.jaxrs.entity.Client</class>
-		<class>fr.istic.taa.jaxrs.entity.Groupe</class>
-		<class>fr.istic.taa.jaxrs.entity.Message</class>
-		<class>fr.istic.taa.jaxrs.entity.ClientGroupe</class>
-
 		<properties>
 			<property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
 			<property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/marketingdb"/>
@@ -55,9 +48,8 @@
 
 			<property name="jakarta.persistence.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
 
-			<property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create"/>
-
-			<property name="hibernate.hbm2ddl.auto" value="create"/>
+			<property name="jakarta.persistence.schema-generation.database.action" value="none"/>
+			<property name="hibernate.hbm2ddl.auto" value="update"/>
 
 			<property name="hibernate.show_sql" value="true"/>
 			<property name="hibernate.format_sql" value="true"/>

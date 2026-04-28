@@ -14,13 +14,15 @@ public class DashboardService {
     private final MessageDAO messageDAO = new MessageDAO();
     private final ClientDAO  clientDAO  = new ClientDAO();
 
+    // ─── Retourne les statistiques d'un utilisateur ──────────────────────────
+    // Nombre de groupes créés, messages envoyés, et clients créés
     public DashboardDTO getStats(Long userId) {
         Users user = accountDAO.findUserById(userId);
         if (user == null) throw new RuntimeException("Utilisateur introuvable");
 
-        long nbGroupes   = groupeDAO.countByUserId(userId);
-        long nbMessages  = messageDAO.countSentByUserId(userId);
-        long nbClients   = clientDAO.countByUserId(userId);
+        long nbGroupes  = groupeDAO.countByUserId(userId);   // groupes créés par cet user
+        long nbMessages = messageDAO.countSentByUserId(userId); // messages dont il est l'expéditeur
+        long nbClients  = clientDAO.countByUserId(userId);   // clients liés à cet user
 
         return new DashboardDTO(userId, nbGroupes, nbMessages, nbClients);
     }

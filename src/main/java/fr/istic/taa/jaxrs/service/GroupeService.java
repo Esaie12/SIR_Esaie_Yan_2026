@@ -2,6 +2,7 @@ package fr.istic.taa.jaxrs.service;
 
 import fr.istic.taa.jaxrs.dao.classic.AccountDAO;
 import fr.istic.taa.jaxrs.dao.classic.GroupeDAO;
+import fr.istic.taa.jaxrs.dao.classic.MessageDAO;
 import fr.istic.taa.jaxrs.dto.GroupeDTO;
 import fr.istic.taa.jaxrs.entity.Groupe;
 import fr.istic.taa.jaxrs.entity.Users;
@@ -14,6 +15,7 @@ public class GroupeService {
 
     private final GroupeDAO  groupeDAO  = new GroupeDAO();
     private final AccountDAO accountDAO = new AccountDAO();
+    private final MessageDAO messageDAO = new MessageDAO();
 
     // Convertit un Groupe en DTO
     // memberCount est compté en base pour éviter les problèmes de lazy loading
@@ -35,13 +37,12 @@ public class GroupeService {
         Groupe groupe = new Groupe();
         groupe.setLibelle(dto.getLibelle());
         groupe.setColor(dto.getColor());
-        groupe.setDateCreate(LocalDateTime.now()); // date générée automatiquement
+        groupe.setDateCreate(LocalDateTime.now());
         return groupe;
     }
 
     // Récupère un groupe par son ID
     public GroupeDTO findGroupe(Long id) {
-        // Vide le cache L1 avant de lire pour garantir les données fraîches
         Groupe groupe = groupeDAO.findOne(id);
         if (groupe != null) {
             groupeDAO.getEntityManager().refresh(groupe);
@@ -80,20 +81,21 @@ public class GroupeService {
     }
 
     // Met à jour le libellé et la couleur d'un groupe
-    // refresh() vide le cache L1 de JPA après le merge pour garantir
-    // que le prochain getById retourne les nouvelles valeurs depuis la BDD
     public GroupeDTO updateGroupe(Long id, GroupeDTO dto) {
         Groupe existing = groupeDAO.findOne(id);
         if (existing == null) return null;
         existing.setLibelle(dto.getLibelle());
         existing.setColor(dto.getColor());
         Groupe updated = groupeDAO.update(existing);
-        groupeDAO.getEntityManager().refresh(updated); // vide le cache L1
+        groupeDAO.getEntityManager().refresh(updated);
         return toDTO(updated);
     }
 
-    // Supprime un groupe par son ID
+    // Supprime un groupe et ses messages associés
+    // Les messages liés au groupe doivent être supprimés avant le groupe
+    // sinon la contrainte FK en base provoque un 500
     public void deleteGroupe(Long id) {
+        messageDAO.deleteByGroupe(id); // supprime d'abord les messages du groupe
         groupeDAO.deleteById(id);
     }
 }

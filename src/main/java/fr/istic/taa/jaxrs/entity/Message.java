@@ -26,13 +26,14 @@ public class Message implements Serializable {
     private Long id;
 
     private String title;
+
+    // TEXT au lieu de VARCHAR(255) pour supporter les longs contenus
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "date_send")
     private LocalDateTime dateSend;
 
-    // Destinataire : soit un user direct (groupe = null),
-    //                soit un groupe entier (user = null)
     @ManyToOne
     @JoinColumn(name = "client_id", nullable = true)
     private Client client;
@@ -47,23 +48,21 @@ public class Message implements Serializable {
 
     public Message() {}
 
-    // Constructeur envoi à un User
     public Message(String title, String content, LocalDateTime dateSend, Client c, Users sender) {
         this.title    = title;
         this.content  = content;
         this.dateSend = dateSend;
-        this.client  = c;
+        this.client   = c;
         this.sender   = sender;
         this.groupe   = null;
     }
 
-    // Constructeur envoi à un Groupe
     public Message(String title, String content, LocalDateTime dateSend, Groupe groupe, Users sender) {
         this.title    = title;
         this.content  = content;
         this.dateSend = dateSend;
         this.groupe   = groupe;
-        this.client     = null;
+        this.client   = null;
         this.sender   = sender;
     }
 

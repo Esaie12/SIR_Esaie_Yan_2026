@@ -20,9 +20,7 @@ public class MessageService {
     private final GroupeDAO  groupeDAO  = new GroupeDAO();
     private final ClientDAO  clientDAO  = new ClientDAO();
 
-    // ─── Convertit un Message en DTO ────────────────────────────────────────
-    // userId = destinataire client, senderId = expéditeur, groupeId = groupe destinataire
-    // L'un des deux (userId ou groupeId) sera toujours null
+    // Convertit un Message en DTO
     private MessageDTO toDTO(Message message) {
         MessageDTO dto = new MessageDTO();
         dto.setId(message.getId());
@@ -35,8 +33,7 @@ public class MessageService {
         return dto;
     }
 
-    // ─── Crée un message vers un client OU vers un groupe ───────────────────
-    // userId et groupeId ne peuvent pas être renseignés en même temps
+    // Crée un message vers un client ou un groupe (pas les deux en même temps)
     public MessageDTO createMessage(MessageDTO dto) {
 
         boolean hasUser   = dto.getUserId()   != null;
@@ -49,7 +46,6 @@ public class MessageService {
         if (dto.getSenderId() == null)
             throw new RuntimeException("senderId est obligatoire pour envoyer un message");
 
-        // Vérifie que l'expéditeur existe
         Users sender = accountDAO.findUserById(dto.getSenderId());
         if (sender == null)
             throw new RuntimeException("Expéditeur (sender) introuvable");
@@ -57,12 +53,10 @@ public class MessageService {
         Message message;
 
         if (hasUser) {
-            // Message destiné à un client précis
             Client client = clientDAO.findClientById(dto.getUserId());
             if (client == null) throw new RuntimeException("Client destinataire introuvable");
             message = new Message(dto.getTitle(), dto.getContent(), dto.getDateSend(), client, sender);
         } else {
-            // Message destiné à tous les membres d'un groupe
             Groupe groupe = groupeDAO.findOne(dto.getGroupeId());
             if (groupe == null) throw new RuntimeException("Groupe introuvable");
             message = new Message(dto.getTitle(), dto.getContent(), dto.getDateSend(), groupe, sender);
@@ -72,33 +66,41 @@ public class MessageService {
         return toDTO(message);
     }
 
-    // ─── Récupère les messages reçus par un client (trié par date desc) ──────
+    // Récupère les messages reçus par un client
     public List<MessageDTO> getMessagesByUser(Long userId) {
         List<Message> messages = messageDAO.findByUserId(userId);
         List<MessageDTO> dtos = new ArrayList<>();
-        for (Message message : messages) dtos.add(toDTO(message));
+        for (Message message : messages) {
+            messageDAO.getEntityManager().refresh(message); // évite le cache JPA
+            dtos.add(toDTO(message));
+        }
         return dtos;
     }
 
-    // ─── Récupère les messages envoyés à un groupe (trié par date desc) ──────
+    // Récupère les messages envoyés à un groupe
     public List<MessageDTO> getMessagesByGroupe(Long groupeId) {
         List<Message> messages = messageDAO.findByGroupeId(groupeId);
         List<MessageDTO> dtos = new ArrayList<>();
-        for (Message message : messages) dtos.add(toDTO(message));
+        for (Message message : messages) {
+            messageDAO.getEntityManager().refresh(message); // évite le cache JPA
+            dtos.add(toDTO(message));
+        }
         return dtos;
     }
 
-    // ─── Supprime un message par son ID ─────────────────────────────────────
+    // Supprime un message par son ID
     public void deleteMessage(Long id) {
         messageDAO.deleteById(id);
     }
 
-    // ─── Récupère tous les messages envoyés par un utilisateur ──────────────
-    // senderId = l'utilisateur connecté qui veut voir ses messages envoyés
+    // Récupère tous les messages envoyés par un utilisateur
     public List<MessageDTO> getMesMessages(Long senderId) {
         List<Message> messages = messageDAO.findBySender(senderId);
         List<MessageDTO> dtos = new ArrayList<>();
-        for (Message message : messages) dtos.add(toDTO(message));
+        for (Message message : messages) {
+            messageDAO.getEntityManager().refresh(message);
+            dtos.add(toDTO(message));
+        }
         return dtos;
     }
 }

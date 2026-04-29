@@ -28,8 +28,8 @@ public class MessageResource {
 
     @GET
     @Operation(
-            summary     = "Lister les messages d'un utilisateur ou d'un groupe",
-            description = "Fournir userId OU groupeId (pas les deux). "
+            summary     = "Lister les messages reçus d'un client ou d'un groupe",
+            description = "Fournir userId (= clientId) OU groupeId (pas les deux). "
                     + "Retourne les messages triés par date d'envoi décroissante."
     )
     @ApiResponses({
@@ -40,8 +40,8 @@ public class MessageResource {
                     responseCode = "400", description = "userId ou groupeId requis (pas les deux)")
     })
     public Response getMessages(
-            @Parameter(description = "ID de l'utilisateur destinataire") @QueryParam("userId")   Long userId,
-            @Parameter(description = "ID du groupe destinataire")         @QueryParam("groupeId") Long groupeId) {
+            @Parameter(description = "ID du client destinataire") @QueryParam("userId")   Long userId,
+            @Parameter(description = "ID du groupe destinataire") @QueryParam("groupeId") Long groupeId) {
 
         if (userId == null && groupeId == null)
             return Response.status(400)
@@ -51,43 +51,40 @@ public class MessageResource {
             return Response.status(400)
                     .entity(ApiResponse.error("Fournir userId OU groupeId, pas les deux")).build();
 
-        if (userId != null) {
-            List<MessageDTO> list = messageService.getMessagesByUser(userId);
-            return Response.ok(ApiResponse.ok(list)).build();
-        }
+        if (userId != null)
+            return Response.ok(ApiResponse.ok(messageService.getMessagesByUser(userId))).build();
 
-        List<MessageDTO> list = messageService.getMessagesByGroupe(groupeId);
-        return Response.ok(ApiResponse.ok(list)).build();
+        return Response.ok(ApiResponse.ok(messageService.getMessagesByGroupe(groupeId))).build();
     }
-    
+
+    // Route distincte avec @Path → visible dans Swagger sans conflit avec getMessages()
     @GET
+    @Path("/sent/{senderId}")
     @Operation(
-            summary     = "Lister les messages d'un destinataire",
-            description = "Fournir senderId "
+            summary     = "Mes messages envoyés",
+            description = "Retourne tous les messages envoyés par l'utilisateur, triés par date décroissante."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200", description = "Liste des messages",
+                    responseCode = "200", description = "Liste des messages envoyés",
                     content = @Content(schema = @Schema(implementation = MessageDTO.class))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "400", description = "senderId requis")
+                    responseCode = "404", description = "Utilisateur introuvable")
     })
     public Response getMesMessages(
-            @Parameter(description = "ID de l'utilisateur destinataire") @QueryParam("senderId")   Long senderId) {
-
-        if (senderId == null) 
-            return Response.status(400)
-                    .entity(ApiResponse.error("senderId est requis")).build();
-
-        List<MessageDTO> list = messageService.getMesMessages(senderId);
-        return Response.ok(ApiResponse.ok(list)).build();
+            @Parameter(description = "ID de l'expéditeur", required = true)
+            @PathParam("senderId") Long senderId) {
+        try {
+            return Response.ok(ApiResponse.ok(messageService.getMesMessages(senderId))).build();
+        } catch (RuntimeException e) {
+            return Response.status(404).entity(ApiResponse.notFound(e.getMessage())).build();
+        }
     }
 
     @POST
     @Operation(
             summary     = "Envoyer un message",
-            description = "Envoie un message à un utilisateur (userId renseigné, groupeId null) "
-                    + "ou à un groupe entier (groupeId renseigné, userId null). "
+            description = "Envoie un message à un client (userId) ou à un groupe (groupeId). "
                     + "Les deux champs ne peuvent pas être renseignés simultanément."
     )
     @ApiResponses({
@@ -104,8 +101,7 @@ public class MessageResource {
                     content     = @Content(schema = @Schema(implementation = MessageDTO.class)))
             MessageDTO dto) {
         try {
-            MessageDTO created = messageService.createMessage(dto);
-            return Response.status(201).entity(ApiResponse.created(created)).build();
+            return Response.status(201).entity(ApiResponse.created(messageService.createMessage(dto))).build();
         } catch (RuntimeException e) {
             return Response.status(400).entity(ApiResponse.error(e.getMessage())).build();
         }
@@ -125,7 +121,4 @@ public class MessageResource {
         messageService.deleteMessage(id);
         return Response.status(204).entity(ApiResponse.noContent()).build();
     }
-    
-    
-    
 }

@@ -27,8 +27,10 @@ public class Message implements Serializable {
 
     private String title;
 
-    // TEXT au lieu de VARCHAR(255) pour supporter les longs contenus
-    @Column(columnDefinition = "TEXT")
+    // Pas de columnDefinition=TEXT pour rester compatible HSQLDB et PostgreSQL
+    // La colonne sera VARCHAR(255) par défaut, suffisant pour les messages courts
+    // Sur PostgreSQL, vous pouvez exécuter : ALTER TABLE message ALTER COLUMN content TYPE TEXT;
+    @Column(length = 5000)
     private String content;
 
     @Column(name = "date_send")

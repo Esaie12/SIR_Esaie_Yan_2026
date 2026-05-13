@@ -21,6 +21,38 @@ Application CRM (Customer Relationship Management) développée dans le cadre du
 
 ---
 
+## Modèle métier
+
+### Diagramme de classes
+
+![Diagramme de classes](classe.png)
+
+### Héritage JPA — SINGLE_TABLE
+
+```
+Account  (discriminant: type_account)
+├── ADMIN     → Admin    { pseudo }
+└── USER      → Users    { isActive, createdAt }
+    ├── MORAL     → Moral    { companyName }
+    └── PHYSIQUE  → Physique { sexe, birthday }
+```
+
+### Relations bidirectionnelles (mappedBy)
+
+| Côté propriétaire      | Côté inverse (mappedBy)    |
+|------------------------|---------------------------|
+| `Client.user`          | `Users.clients`           |
+| `Groupe.user`          | `Users.groupes`           |
+| `Message.sender`       | `Users.messages`          |
+| `ClientGroupe.client`  | `Client.clientGroupes`    |
+| `ClientGroupe.groupe`  | `Groupe.clientGroupes`    |
+
+### Diagramme de cas d'utilisation
+
+![Diagramme de cas d'utilisation](use_case.png)
+
+---
+
 ## Prérequis
 
 - Java 17+
@@ -44,25 +76,10 @@ Le projet utilise HSQLDB en mode serveur. Il faut le démarrer **avant** l'appli
 
 **Linux / Mac :**
 ```bash
-mvn dependency:copy-dependencies
-mkdir -p data
-cd data
-java -cp ../target/dependency/hsqldb-2.7.2.jar org.hsqldb.Server
-```
-
-Ou avec le script fourni :
-```bash
 ./run-hsqldb-server.sh
 ```
 
 **Windows :**
-```bat
-mkdir data
-cd data
-java -cp ..\hsqldb-2.7.2.jar org.hsqldb.Server
-```
-
-Ou avec le script fourni :
 ```bat
 run-hsqldb-server.bat
 ```
@@ -70,14 +87,6 @@ run-hsqldb-server.bat
 ### 3. (Optionnel) Visualiser la base HSQLDB
 
 **Linux / Mac :**
-```bash
-java -cp ./hsqldb-2.7.2.jar org.hsqldb.util.DatabaseManagerSwing \
-  --driver org.hsqldb.jdbcDriver \
-  --url jdbc:hsqldb:hsql://localhost/ \
-  --user SA
-```
-
-Ou avec le script fourni :
 ```bash
 ./show-hsqldb.sh
 ```
@@ -87,7 +96,7 @@ Ou avec le script fourni :
 show-hsqldb.bat
 ```
 
-### 4. Compiler et lancer le backend
+### 4. Compiler et lancer
 
 ```bash
 mvn clean package
@@ -105,8 +114,6 @@ Le projet utilise par défaut l'unité **`dev`** (HSQLDB) dans `EntityManagerHel
 ```java
 emf = Persistence.createEntityManagerFactory("dev");
 ```
-
-Deux unités sont disponibles dans `src/main/resources/META-INF/persistence.xml` :
 
 **`dev` — HSQLDB (défaut) :**
 ```xml
@@ -198,7 +205,7 @@ Deux unités sont disponibles dans `src/main/resources/META-INF/persistence.xml`
 
 | Méthode | Chemin | Description |
 |---------|--------|-------------|
-| GET | `/messages` | Messages reçus par un client (`?userId`) ou groupe (`?groupeId`) |
+| GET | `/messages` | Messages reçus (`?userId` ou `?groupeId`) |
 | GET | `/messages/{id}` | Récupérer un message par ID |
 | GET | `/messages/sent/{senderId}` | Messages envoyés par un utilisateur |
 | POST | `/messages` | Envoyer un message |
@@ -217,60 +224,61 @@ Deux unités sont disponibles dans `src/main/resources/META-INF/persistence.xml`
 
 ```
 SIR_Esaie_Yan_2026/
-├── run-hsqldb-server.sh / run-hsqldb-server.bat   <- démarrer le serveur HSQLDB
-├── show-hsqldb.sh / show-hsqldb.bat               <- ouvrir le visualiseur HSQLDB
-└── src/main/java/fr/istic/taa/jaxrs/
-    ├── RestServer.java              <- démarrage Undertow + Swagger UI via webjars
-    ├── TestApplication.java         <- enregistrement des ressources JAX-RS
-    ├── JacksonConfig.java           <- sérialisation JSON + LocalDateTime flexible
-    ├── CorsFilter.java              <- en-têtes CORS sur chaque réponse
-    ├── CorsRequestFilter.java       <- réponse immédiate aux requêtes OPTIONS
-    ├── dao/
-    │   ├── AbstractJpaDao.java      <- CRUD générique
-    │   ├── EntityManagerHelper.java <- ThreadLocal EntityManager (unité "dev" par défaut)
-    │   └── classic/
-    │       ├── AccountDAO.java
-    │       ├── ClientDAO.java
-    │       ├── GroupeDAO.java
-    │       └── MessageDAO.java
-    ├── entity/
-    │   ├── Account.java             <- SINGLE_TABLE (discriminant type_account)
-    │   ├── Admin.java
-    │   ├── Users.java
-    │   ├── Moral.java
-    │   ├── Physique.java
-    │   ├── Client.java
-    │   ├── Groupe.java
-    │   ├── Message.java             <- content VARCHAR(5000) compatible HSQLDB + PostgreSQL
-    │   ├── ClientGroupe.java
-    │   └── ClientGroupeId.java      <- clé composite @EmbeddedId
-    ├── dto/
-    │   ├── AccountDTO.java
-    │   ├── ClientDTO.java
-    │   ├── GroupeDTO.java
-    │   ├── MessageDTO.java
-    │   ├── ClientGroupeDTO.java
-    │   ├── DashboardDTO.java
-    │   └── ApiResponse.java         <- enveloppe { status, message, data }
-    ├── service/
-    │   ├── AccountService.java
-    │   ├── ClientService.java       <- suppression cascade messages + ClientGroupe
-    │   ├── GroupeService.java       <- suppression cascade messages
-    │   ├── MessageService.java      <- getMessageById, updateMessage
-    │   └── DashboardService.java
-    └── rest/
-        ├── AccountResource.java     <- annotations OpenAPI complètes
-        ├── ClientResource.java
-        ├── GroupeResource.java
-        ├── MessageResource.java
-        └── DashboardResource.java
+|-- docs/
+|   |-- classe.png           <- diagramme de classes
+|   `-- use_case.png         <- diagramme de cas d'utilisation
+|-- run-hsqldb-server.sh / run-hsqldb-server.bat
+|-- show-hsqldb.sh / show-hsqldb.bat
+`-- src/main/java/fr/istic/taa/jaxrs/
+    |-- RestServer.java
+    |-- TestApplication.java
+    |-- JacksonConfig.java
+    |-- CorsFilter.java
+    |-- CorsRequestFilter.java
+    |-- dao/
+    |   |-- AbstractJpaDao.java
+    |   |-- EntityManagerHelper.java
+    |   `-- classic/
+    |       |-- AccountDAO.java
+    |       |-- ClientDAO.java
+    |       |-- GroupeDAO.java
+    |       `-- MessageDAO.java
+    |-- entity/
+    |   |-- Account.java
+    |   |-- Admin.java
+    |   |-- Users.java
+    |   |-- Moral.java
+    |   |-- Physique.java
+    |   |-- Client.java
+    |   |-- Groupe.java
+    |   |-- Message.java
+    |   |-- ClientGroupe.java
+    |   `-- ClientGroupeId.java
+    |-- dto/
+    |   |-- AccountDTO.java
+    |   |-- ClientDTO.java
+    |   |-- GroupeDTO.java
+    |   |-- MessageDTO.java
+    |   |-- ClientGroupeDTO.java
+    |   |-- DashboardDTO.java
+    |   `-- ApiResponse.java
+    |-- service/
+    |   |-- AccountService.java
+    |   |-- ClientService.java
+    |   |-- GroupeService.java
+    |   |-- MessageService.java
+    |   `-- DashboardService.java
+    `-- rest/
+        |-- AccountResource.java
+        |-- ClientResource.java
+        |-- GroupeResource.java
+        |-- MessageResource.java
+        `-- DashboardResource.java
 ```
 
 ---
 
 ## Format des réponses
-
-Toutes les réponses sont enveloppées dans `ApiResponse<T>` :
 
 ```json
 {
@@ -285,30 +293,16 @@ Toutes les réponses sont enveloppées dans `ApiResponse<T>` :
 ## Points techniques notables
 
 ### Gestion du CORS
-Implémentée côté serveur Java — pas de proxy Angular :
 - `CorsFilter` — ajoute `Access-Control-Allow-Origin: http://localhost:4200` à chaque réponse
 - `CorsRequestFilter` — répond 200 immédiatement aux requêtes `OPTIONS` (preflight)
 
-### Swagger UI via webjars
-Le `RestServer` sert Swagger UI depuis le classpath sans fichiers statiques à copier :
-```java
-ResourceHandler swaggerHandler = new ResourceHandler(
-    new ClassPathResourceManager(
-        RestServer.class.getClassLoader(),
-        "META-INF/resources/webjars/swagger-ui/" + SWAGGER_VERSION
-    )
-);
-```
-
 ### Cache JPA L1
-Pour éviter les lectures en cache après écriture :
 ```java
 entityManager.clear();          // avant find
 entityManager.refresh(entity);  // après lecture
 ```
 
 ### Sérialisation LocalDateTime
-`JacksonConfig` accepte les deux formats envoyés par Angular (`HH:mm` et `HH:mm:ss`) :
 ```java
 DateTimeFormatter flexibleFormatter = new DateTimeFormatterBuilder()
     .appendPattern("yyyy-MM-dd'T'HH:mm")
@@ -322,4 +316,4 @@ DateTimeFormatter flexibleFormatter = new DateTimeFormatterBuilder()
 - `deleteGroupe(id)` → supprime les messages du groupe puis le groupe
 
 ### Compatibilité HSQLDB / PostgreSQL
-`Message.content` utilise `@Column(length = 5000)` au lieu de `columnDefinition = "TEXT"` pour rester compatible avec les deux bases.
+`Message.content` utilise `@Column(length = 5000)` compatible avec les deux bases.

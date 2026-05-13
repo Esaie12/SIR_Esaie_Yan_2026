@@ -1,6 +1,7 @@
 package fr.istic.taa.jaxrs.rest;
 
 import fr.istic.taa.jaxrs.dto.AccountDTO;
+import fr.istic.taa.jaxrs.dto.ClientDTO;
 import fr.istic.taa.jaxrs.dto.MessageDTO;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -16,7 +17,8 @@ import static org.hamcrest.Matchers.*;
 
 public class MessageResourceTest {
 
-    private Long testUserId;
+    private Long testSenderId;
+    private Long testClientId;
 
     @BeforeClass
     public static void setup() {
@@ -25,22 +27,38 @@ public class MessageResourceTest {
 
     @Before
     public void createPrerequisites() {
+        // 1. Créer l'expéditeur (Account/Users)
         AccountDTO userDto = new AccountDTO();
-        userDto.setEmail("msg_receiver@test.com");
+        userDto.setEmail("msg_sender_api@test.com");
         userDto.setPassword("pass");
         userDto.setFirstname("M");
         userDto.setLastname("R");
-        userDto.setType("USER");
+        userDto.setType("PHYSIQUE"); // ou MORAL, mais pas USER qui n'existe pas dans la factory
 
         Number idNum = given().contentType(ContentType.JSON).body(userDto)
-                .post("/accounts").then().extract().path("data.id");
-        testUserId = idNum.longValue();
+                .post("/accounts").then().statusCode(201).extract().path("data.id");
+        testSenderId = idNum.longValue();
+
+        // 2. Créer le client destinataire lié à cet expéditeur
+        ClientDTO clientDto = new ClientDTO();
+        clientDto.setName("Client API Test");
+        clientDto.setEmail("client_api@test.com");
+        clientDto.setCountry("France");
+        clientDto.setSexe("M");
+        clientDto.setUserId(testSenderId); // Important : lier le client à l'utilisateur
+
+        Number clientIdNum = given().contentType(ContentType.JSON).body(clientDto)
+                .post("/clients").then().statusCode(201).extract().path("data.id");
+        testClientId = clientIdNum.longValue();
     }
 
     @After
     public void cleanUp() {
-        if (testUserId != null) {
-            given().delete("/accounts/" + testUserId); // Cascadera sur les messages
+        if (testClientId != null) {
+            given().delete("/clients/" + testClientId);
+        }
+        if (testSenderId != null) {
+            given().delete("/accounts/" + testSenderId);
         }
     }
 
@@ -50,30 +68,31 @@ public class MessageResourceTest {
         dto.setTitle("Alerte API");
         dto.setContent("Ceci est un test REST");
         dto.setDateSend(LocalDateTime.now());
-        dto.setUserId(testUserId); // Destinataire : un User
+        // L'expéditeur
+        dto.setSenderId(testSenderId);
+        // Le destinataire (Client)
+        dto.setUserId(testClientId);
 
-        Number msgIdNum = given()
+        // 1. Créer le message
+        given()
                 .contentType(ContentType.JSON)
                 .body(dto)
                 .when()
                 .post("/messages")
                 .then()
                 .statusCode(201)
-                .body("data.title", equalTo("Alerte API"))
-                .extract().path("data.id");
+                .body("data.title", equalTo("Alerte API"));
 
-        Long msgId = msgIdNum.longValue();
-
-        // Récupérer les messages du user
+        // 2. Récupérer les messages du client
         given()
                 .when()
-                .get("/messages?userId=" + testUserId)
+                .get("/messages?userId=" + testClientId)
                 .then()
                 .statusCode(200)
                 .body("data.size()", greaterThanOrEqualTo(1))
                 .body("data[0].title", equalTo("Alerte API"));
 
-        // Test d'erreur : requete mal formée (pas de userId ni de groupeId)
+        // 3. Test d'erreur : requête mal formée (pas de userId ni de groupeId)
         given()
                 .when()
                 .get("/messages")

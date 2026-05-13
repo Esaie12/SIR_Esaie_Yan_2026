@@ -16,73 +16,71 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.util.List;
-
 @Path("/messages")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Tag(name = "Messages", description = "Gestion des messages — envoi à un utilisateur ou à un groupe entier")
+@Tag(name = "Messages", description = "Gestion des messages")
 public class MessageResource {
 
     private final MessageService messageService = new MessageService();
 
     @GET
-    @Operation(
-            summary     = "Lister les messages d'un utilisateur ou d'un groupe",
-            description = "Fournir userId OU groupeId (pas les deux). "
-                    + "Retourne les messages triés par date d'envoi décroissante."
-    )
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200", description = "Liste des messages",
-                    content = @Content(schema = @Schema(implementation = MessageDTO.class))),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "400", description = "userId ou groupeId requis (pas les deux)")
-    })
+    @Operation(summary = "Lister les messages reçus d'un client ou d'un groupe")
     public Response getMessages(
-            @Parameter(description = "ID de l'utilisateur destinataire") @QueryParam("userId")   Long userId,
-            @Parameter(description = "ID du groupe destinataire")         @QueryParam("groupeId") Long groupeId) {
+            @QueryParam("userId")   Long userId,
+            @QueryParam("groupeId") Long groupeId) {
 
         if (userId == null && groupeId == null)
-            return Response.status(400)
-                    .entity(ApiResponse.error("userId ou groupeId est requis")).build();
-
+            return Response.status(400).entity(ApiResponse.error("userId ou groupeId est requis")).build();
         if (userId != null && groupeId != null)
-            return Response.status(400)
-                    .entity(ApiResponse.error("Fournir userId OU groupeId, pas les deux")).build();
+            return Response.status(400).entity(ApiResponse.error("Fournir userId OU groupeId, pas les deux")).build();
+        if (userId != null)
+            return Response.ok(ApiResponse.ok(messageService.getMessagesByUser(userId))).build();
+        return Response.ok(ApiResponse.ok(messageService.getMessagesByGroupe(groupeId))).build();
+    }
 
-        if (userId != null) {
-            List<MessageDTO> list = messageService.getMessagesByUser(userId);
-            return Response.ok(ApiResponse.ok(list)).build();
+    // Récupère un message par son ID — nécessaire pour la page de modification
+    @GET
+    @Path("/{id}")
+    @Operation(summary = "Récupérer un message par son ID")
+    public Response getMessageById(@PathParam("id") Long id) {
+        MessageDTO dto = messageService.getMessageById(id);
+        if (dto == null)
+            return Response.status(404).entity(ApiResponse.notFound("Message introuvable")).build();
+        return Response.ok(ApiResponse.ok(dto)).build();
+    }
+
+    @GET
+    @Path("/sent/{senderId}")
+    @Operation(summary = "Mes messages envoyés")
+    public Response getMesMessages(@PathParam("senderId") Long senderId) {
+        try {
+            return Response.ok(ApiResponse.ok(messageService.getMesMessages(senderId))).build();
+        } catch (RuntimeException e) {
+            return Response.status(404).entity(ApiResponse.notFound(e.getMessage())).build();
         }
-
-        List<MessageDTO> list = messageService.getMessagesByGroupe(groupeId);
-        return Response.ok(ApiResponse.ok(list)).build();
     }
 
     @POST
-    @Operation(
-            summary     = "Envoyer un message",
-            description = "Envoie un message à un utilisateur (userId renseigné, groupeId null) "
-                    + "ou à un groupe entier (groupeId renseigné, userId null). "
-                    + "Les deux champs ne peuvent pas être renseignés simultanément."
-    )
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "201", description = "Message envoyé",
-                    content = @Content(schema = @Schema(implementation = MessageDTO.class))),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "400", description = "Destinataire invalide ou manquant")
-    })
-    public Response createMessage(
-            @RequestBody(
-                    description = "title, content, dateSend + userId OU groupeId",
-                    required    = true,
-                    content     = @Content(schema = @Schema(implementation = MessageDTO.class)))
-            MessageDTO dto) {
+    @Operation(summary = "Envoyer un message")
+    public Response createMessage(MessageDTO dto) {
         try {
-            MessageDTO created = messageService.createMessage(dto);
-            return Response.status(201).entity(ApiResponse.created(created)).build();
+            return Response.status(201).entity(ApiResponse.created(messageService.createMessage(dto))).build();
+        } catch (RuntimeException e) {
+            return Response.status(400).entity(ApiResponse.error(e.getMessage())).build();
+        }
+    }
+
+    // Mise à jour d'un message existant
+    @PUT
+    @Path("/{id}")
+    @Operation(summary = "Mettre à jour un message")
+    public Response updateMessage(@PathParam("id") Long id, MessageDTO dto) {
+        try {
+            MessageDTO updated = messageService.updateMessage(id, dto);
+            if (updated == null)
+                return Response.status(404).entity(ApiResponse.notFound("Message introuvable")).build();
+            return Response.ok(ApiResponse.ok(updated)).build();
         } catch (RuntimeException e) {
             return Response.status(400).entity(ApiResponse.error(e.getMessage())).build();
         }
@@ -91,14 +89,7 @@ public class MessageResource {
     @DELETE
     @Path("/{id}")
     @Operation(summary = "Supprimer un message")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "204", description = "Message supprimé"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "404", description = "Message introuvable")
-    })
-    public Response deleteMessage(
-            @Parameter(description = "ID du message", required = true) @PathParam("id") Long id) {
+    public Response deleteMessage(@PathParam("id") Long id) {
         messageService.deleteMessage(id);
         return Response.status(204).entity(ApiResponse.noContent()).build();
     }

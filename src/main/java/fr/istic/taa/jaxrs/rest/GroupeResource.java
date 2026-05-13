@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -119,6 +119,7 @@ public class GroupeResource {
 
     @DELETE
     @Path("/{id}")
+    @Transactional
     @Operation(summary = "Supprimer un groupe")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(

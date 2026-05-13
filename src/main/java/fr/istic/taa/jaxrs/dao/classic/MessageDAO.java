@@ -41,23 +41,45 @@ public class MessageDAO extends AbstractJpaDao<Long, Message> {
                 .getResultList();
     }
 
-    public int deleteByUser(Long userId) {
-        EntityTransaction tx = entityManager.getTransaction();
-        tx.begin();
-        int deleted = entityManager.createQuery(
-                        "DELETE FROM Message m WHERE m.user.id = :userId")
-                .setParameter("userId", userId)
-                .executeUpdate();
-        tx.commit();
-        return deleted;
+    // Tous les messages envoyés par un expéditeur, triés par date décroissante
+    public List<Message> findBySender(Long senderId) {
+        return entityManager.createQuery(
+                        "SELECT m FROM Message m WHERE m.sender.id = :senderId ORDER BY m.dateSend DESC",
+                        Message.class)
+                .setParameter("senderId", senderId)
+                .getResultList();
     }
 
+    // Supprime les messages d'un groupe avant la suppression du groupe (contrainte FK)
     public int deleteByGroupe(Long groupeId) {
         EntityTransaction tx = entityManager.getTransaction();
         tx.begin();
         int deleted = entityManager.createQuery(
                         "DELETE FROM Message m WHERE m.groupe.id = :groupeId")
                 .setParameter("groupeId", groupeId)
+                .executeUpdate();
+        tx.commit();
+        return deleted;
+    }
+
+    // Supprime les messages d'un client avant la suppression du client (contrainte FK)
+    public int deleteByClient(Long clientId) {
+        EntityTransaction tx = entityManager.getTransaction();
+        tx.begin();
+        int deleted = entityManager.createQuery(
+                        "DELETE FROM Message m WHERE m.client.id = :clientId")
+                .setParameter("clientId", clientId)
+                .executeUpdate();
+        tx.commit();
+        return deleted;
+    }
+
+    public int deleteByUser(Long userId) {
+        EntityTransaction tx = entityManager.getTransaction();
+        tx.begin();
+        int deleted = entityManager.createQuery(
+                        "DELETE FROM Message m WHERE m.sender.id = :userId")
+                .setParameter("userId", userId)
                 .executeUpdate();
         tx.commit();
         return deleted;

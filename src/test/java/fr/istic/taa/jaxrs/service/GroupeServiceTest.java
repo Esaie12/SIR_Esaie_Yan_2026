@@ -62,7 +62,7 @@ public class GroupeServiceTest {
         dto.setLibelle(libelle);
         dto.setColor(color);
 
-        // AJOUT CRUCIAL : Association de l'ID utilisateur généré
+        // Association de l'ID utilisateur généré
         dto.setUserId(testUserId);
 
         return dto;

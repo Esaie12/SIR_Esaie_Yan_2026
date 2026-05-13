@@ -32,11 +32,22 @@ public class GroupeDAO extends AbstractJpaDao<Long, Groupe> {
                 .getResultList();
     }
 
+    // ─── Compte le nombre de groupes créés par un utilisateur ───────────────
     public long countByUserId(Long userId) {
         return entityManager.createQuery(
                         "SELECT COUNT(g) FROM Groupe g WHERE g.user.id = :userId",
                         Long.class)
                 .setParameter("userId", userId)
+                .getSingleResult();
+    }
+
+    // ─── Compte le nombre de membres (clients) dans un groupe précis ─────────
+    // On interroge directement la table ClientGroupe pour avoir le vrai chiffre
+    public long countMembersByGroupeId(Long groupeId) {
+        return entityManager.createQuery(
+                        "SELECT COUNT(cg) FROM ClientGroupe cg WHERE cg.groupe.id = :groupeId",
+                        Long.class)
+                .setParameter("groupeId", groupeId)
                 .getSingleResult();
     }
 }

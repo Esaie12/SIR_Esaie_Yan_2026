@@ -1,149 +1,325 @@
-## JaxRS + openAPI
+# CRM — Backend JAX-RS + JPA
 
-1. Import this project in your IDE, 
-2. Start the database
-3. Start the database viewer
-4. Start the backend. There is a main class to start the backend
+Application CRM (Customer Relationship Management) développée dans le cadre du module **SIR** — Master SIR, ISTIC 2025/2026.
 
+**Auteurs :** Yann Mendel Konan, Esaie Omiyale
 
+---
 
+## Stack technique
 
-# Task Open API Integration 
+| Couche             | Technologie                          |
+|--------------------|--------------------------------------|
+| Langage            | Java 17                              |
+| API REST           | JAX-RS (RESTEasy)                    |
+| Serveur            | Undertow (embarqué, port 8080)       |
+| ORM                | JPA / Hibernate                      |
+| Base (défaut)      | HSQLDB — unité `dev`                 |
+| Base (alternative) | PostgreSQL — unité `postgres`        |
+| API Doc            | OpenAPI 3 / Swagger UI               |
+| Build              | Maven                                |
 
-Now, we would like to ensure that our API can be discovered. The OpenAPI Initiative (OAI) was created by a consortium of forward-looking industry experts who recognize the immense value of standardizing on how REST APIs are described. As an open governance structure under the Linux Foundation, the OAI is focused on creating, evolving and promoting a vendor neutral description format. 
+---
 
-APIs form the connecting glue between modern applications. Nearly every application uses APIs to connect with corporate data sources, third party data services or other applications. Creating an open description format for API services that is vendor neutral, portable and open is critical to accelerating the vision of a truly connected world.
+## Prérequis
 
-To do this integration first, I already add a dependencies to openAPI libraries. 
+- Java 17+
+- Maven 3.8+
+- Serveur HSQLDB lancé avant le démarrage de l'application
 
+---
+
+## Démarrage
+
+### 1. Cloner le projet
+
+```bash
+git clone <url-du-repo>
+cd SIR_Esaie_Yan_2026
+```
+
+### 2. Lancer le serveur HSQLDB
+
+Le projet utilise HSQLDB en mode serveur. Il faut le démarrer **avant** l'application.
+
+**Linux / Mac :**
+```bash
+mvn dependency:copy-dependencies
+mkdir -p data
+cd data
+java -cp ../target/dependency/hsqldb-2.7.2.jar org.hsqldb.Server
+```
+
+Ou avec le script fourni :
+```bash
+./run-hsqldb-server.sh
+```
+
+**Windows :**
+```bat
+mkdir data
+cd data
+java -cp ..\hsqldb-2.7.2.jar org.hsqldb.Server
+```
+
+Ou avec le script fourni :
+```bat
+run-hsqldb-server.bat
+```
+
+### 3. (Optionnel) Visualiser la base HSQLDB
+
+**Linux / Mac :**
+```bash
+java -cp ./hsqldb-2.7.2.jar org.hsqldb.util.DatabaseManagerSwing \
+  --driver org.hsqldb.jdbcDriver \
+  --url jdbc:hsqldb:hsql://localhost/ \
+  --user SA
+```
+
+Ou avec le script fourni :
+```bash
+./show-hsqldb.sh
+```
+
+**Windows :**
+```bat
+show-hsqldb.bat
+```
+
+### 4. Compiler et lancer le backend
+
+```bash
+mvn clean package
+mvn exec:java
+```
+
+Le serveur démarre sur **http://localhost:8080**
+
+---
+
+## Unités de persistance
+
+Le projet utilise par défaut l'unité **`dev`** (HSQLDB) dans `EntityManagerHelper.java` :
+
+```java
+emf = Persistence.createEntityManagerFactory("dev");
+```
+
+Deux unités sont disponibles dans `src/main/resources/META-INF/persistence.xml` :
+
+**`dev` — HSQLDB (défaut) :**
 ```xml
-		<dependency>
-			<groupId>io.swagger.core.v3</groupId>
-			<artifactId>swagger-jaxrs2-jakarta</artifactId>
-			<version>2.2.15</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.swagger.core.v3</groupId>
-			<artifactId>swagger-jaxrs2-servlet-initializer-v2</artifactId>
-			<version>2.2.15</version>
-		</dependency>
+<persistence-unit name="dev">
+  <properties>
+    <property name="jakarta.persistence.jdbc.driver"   value="org.hsqldb.jdbcDriver"/>
+    <property name="jakarta.persistence.jdbc.url"      value="jdbc:hsqldb:hsql://localhost/"/>
+    <property name="jakarta.persistence.jdbc.user"     value="SA"/>
+    <property name="jakarta.persistence.jdbc.password" value=""/>
+    <property name="hibernate.hbm2ddl.auto"            value="update"/>
+    <property name="hibernate.dialect"                 value="org.hibernate.dialect.HSQLDialect"/>
+    <property name="hibernate.show_sql"                value="true"/>
+  </properties>
+</persistence-unit>
 ```
 
-Next you have to add OpenAPI Resource to your application
+**`postgres` — PostgreSQL (optionnel) :**
+```xml
+<persistence-unit name="postgres">
+  <properties>
+    <property name="jakarta.persistence.jdbc.driver"   value="org.postgresql.Driver"/>
+    <property name="jakarta.persistence.jdbc.url"      value="jdbc:postgresql://localhost:5432/marketingdb"/>
+    <property name="jakarta.persistence.jdbc.user"     value="postgres"/>
+    <property name="jakarta.persistence.jdbc.password" value="postgres"/>
+    <property name="hibernate.hbm2ddl.auto"            value="update"/>
+    <property name="hibernate.dialect"                 value="org.hibernate.dialect.PostgreSQLDialect"/>
+    <property name="hibernate.show_sql"                value="true"/>
+  </properties>
+</persistence-unit>
+```
 
-Your application could be something like that. 
+> Pour basculer sur PostgreSQL, modifier dans `EntityManagerHelper.java` :
+> ```java
+> emf = Persistence.createEntityManagerFactory("postgres");
+> ```
 
-```java
-@ApplicationPath("/")
-public class RestApplication extends Application {
+---
 
-	@Override
-	public Set<Class<?>> getClasses() {
-		final Set<Class<?>> resources = new HashSet<>();
+## Documentation API
 
+| URL | Description |
+|-----|-------------|
+| http://localhost:8080/openapi.json | Spécification OpenAPI au format JSON |
+| http://localhost:8080/swagger-ui/index.html | Interface Swagger UI |
 
-		// SWAGGER endpoints
-		resources.add(OpenApiResource.class);
+---
 
-        //Your own resources. 
-        resources.add(PersonResource.class);
-....
-		return resources;
-	}
+## Endpoints REST
+
+### Accounts — `/accounts`
+
+| Méthode | Chemin | Description |
+|---------|--------|-------------|
+| GET | `/accounts` | Lister / filtrer (email, type, actif) |
+| GET | `/accounts/{id}` | Récupérer par ID |
+| POST | `/accounts` | Créer (ADMIN / USER / MORAL / PHYSIQUE) |
+| PUT | `/accounts/{id}` | Mettre à jour |
+| DELETE | `/accounts/{id}` | Supprimer |
+| POST | `/accounts/login` | Authentification |
+
+### Clients — `/clients`
+
+| Méthode | Chemin | Description |
+|---------|--------|-------------|
+| GET | `/clients` | Lister / filtrer (email, country, sexe) |
+| GET | `/clients/{id}` | Récupérer un client |
+| POST | `/clients` | Créer |
+| PUT | `/clients/{id}` | Mettre à jour |
+| DELETE | `/clients/{id}` | Supprimer (cascade messages) |
+| GET | `/clients/by-user/{userId}` | Clients d'un utilisateur |
+| GET | `/clients/{id}/groupes` | Groupes d'un client |
+| POST | `/clients/{cId}/groupes/{gId}` | Ajouter à un groupe |
+
+### Groupes — `/groupes`
+
+| Méthode | Chemin | Description |
+|---------|--------|-------------|
+| GET | `/groupes` | Lister |
+| GET | `/groupes/{id}` | Récupérer |
+| POST | `/groupes` | Créer |
+| PUT | `/groupes/{id}` | Mettre à jour |
+| DELETE | `/groupes/{id}` | Supprimer (cascade messages) |
+| GET | `/groupes/by-user/{userId}` | Groupes d'un utilisateur |
+| GET | `/groupes/{id}/clients` | Clients d'un groupe |
+| DELETE | `/groupes/{gId}/clients/{cId}` | Retirer un client du groupe |
+| GET | `/groupes/{gId}/clients/not-in/user/{userId}` | Clients hors du groupe |
+
+### Messages — `/messages`
+
+| Méthode | Chemin | Description |
+|---------|--------|-------------|
+| GET | `/messages` | Messages reçus par un client (`?userId`) ou groupe (`?groupeId`) |
+| GET | `/messages/{id}` | Récupérer un message par ID |
+| GET | `/messages/sent/{senderId}` | Messages envoyés par un utilisateur |
+| POST | `/messages` | Envoyer un message |
+| PUT | `/messages/{id}` | Modifier un message |
+| DELETE | `/messages/{id}` | Supprimer |
+
+### Dashboard — `/dashboard`
+
+| Méthode | Chemin | Description |
+|---------|--------|-------------|
+| GET | `/dashboard/{userId}` | Statistiques d'un utilisateur |
+
+---
+
+## Structure du projet
+
+```
+SIR_Esaie_Yan_2026/
+├── run-hsqldb-server.sh / run-hsqldb-server.bat   <- démarrer le serveur HSQLDB
+├── show-hsqldb.sh / show-hsqldb.bat               <- ouvrir le visualiseur HSQLDB
+└── src/main/java/fr/istic/taa/jaxrs/
+    ├── RestServer.java              <- démarrage Undertow + Swagger UI via webjars
+    ├── TestApplication.java         <- enregistrement des ressources JAX-RS
+    ├── JacksonConfig.java           <- sérialisation JSON + LocalDateTime flexible
+    ├── CorsFilter.java              <- en-têtes CORS sur chaque réponse
+    ├── CorsRequestFilter.java       <- réponse immédiate aux requêtes OPTIONS
+    ├── dao/
+    │   ├── AbstractJpaDao.java      <- CRUD générique
+    │   ├── EntityManagerHelper.java <- ThreadLocal EntityManager (unité "dev" par défaut)
+    │   └── classic/
+    │       ├── AccountDAO.java
+    │       ├── ClientDAO.java
+    │       ├── GroupeDAO.java
+    │       └── MessageDAO.java
+    ├── entity/
+    │   ├── Account.java             <- SINGLE_TABLE (discriminant type_account)
+    │   ├── Admin.java
+    │   ├── Users.java
+    │   ├── Moral.java
+    │   ├── Physique.java
+    │   ├── Client.java
+    │   ├── Groupe.java
+    │   ├── Message.java             <- content VARCHAR(5000) compatible HSQLDB + PostgreSQL
+    │   ├── ClientGroupe.java
+    │   └── ClientGroupeId.java      <- clé composite @EmbeddedId
+    ├── dto/
+    │   ├── AccountDTO.java
+    │   ├── ClientDTO.java
+    │   ├── GroupeDTO.java
+    │   ├── MessageDTO.java
+    │   ├── ClientGroupeDTO.java
+    │   ├── DashboardDTO.java
+    │   └── ApiResponse.java         <- enveloppe { status, message, data }
+    ├── service/
+    │   ├── AccountService.java
+    │   ├── ClientService.java       <- suppression cascade messages + ClientGroupe
+    │   ├── GroupeService.java       <- suppression cascade messages
+    │   ├── MessageService.java      <- getMessageById, updateMessage
+    │   └── DashboardService.java
+    └── rest/
+        ├── AccountResource.java     <- annotations OpenAPI complètes
+        ├── ClientResource.java
+        ├── GroupeResource.java
+        ├── MessageResource.java
+        └── DashboardResource.java
+```
+
+---
+
+## Format des réponses
+
+Toutes les réponses sont enveloppées dans `ApiResponse<T>` :
+
+```json
+{
+  "status": 200,
+  "message": "OK",
+  "data": { ... }
 }
 ```
 
-Next start your server, you must have your api description available at [http://localhost:8080/openapi.json](http://localhost:8080/openapi.json)
+---
 
-### Integrate Swagger UI. 
+## Points techniques notables
 
-Next we have to integrate Swagger UI. We will first download it.
-https://github.com/swagger-api/swagger-ui
+### Gestion du CORS
+Implémentée côté serveur Java — pas de proxy Angular :
+- `CorsFilter` — ajoute `Access-Control-Allow-Origin: http://localhost:4200` à chaque réponse
+- `CorsRequestFilter` — répond 200 immédiatement aux requêtes `OPTIONS` (preflight)
 
-Copy dist folder content in src/main/webapp/swagger in your project. 
-
-Edit index.html file to automatically load your openapi.json file. 
-
-At the end of the index.html, your must have something like that.
-
-```js
-   // Build a system
-      const ui = SwaggerUIBundle({
-        url: "http://localhost:8080/openapi.json",
-        dom_id: '#swagger-ui',
-        
-        ...
-```
-
-Next add a new resources to create a simple http server when your try to access to http://localhost:8080/api/.
-
-This new resources can be developped as follows
-
+### Swagger UI via webjars
+Le `RestServer` sert Swagger UI depuis le classpath sans fichiers statiques à copier :
 ```java
-package app.web.rest;
-
-import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.util.logging.Logger;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-
-@Path("/api")
-public class SwaggerResource {
-
-    private static final Logger logger = Logger.getLogger(SwaggerResource.class.getName());
-
-    @GET
-    public byte[] Get1() {
-        try {
-            return Files.readAllBytes(FileSystems.getDefault().getPath("src/main/webapp/swagger/index.html"));
-        } catch (IOException e) {
-            return null;
-        }
-    }
-
-    @GET
-    @Path("{path:.*}")
-    public byte[] Get(@PathParam("path") String path) {
-        try {
-            return Files.readAllBytes(FileSystems.getDefault().getPath("src/main/webapp/swagger/"+path));
-        } catch (IOException e) {
-            return null;
-        }
-    }
-
-}
+ResourceHandler swaggerHandler = new ResourceHandler(
+    new ClassPathResourceManager(
+        RestServer.class.getClassLoader(),
+        "META-INF/resources/webjars/swagger-ui/" + SWAGGER_VERSION
+    )
+);
 ```
 
-Add this new resources in your application
-
+### Cache JPA L1
+Pour éviter les lectures en cache après écriture :
 ```java
-@ApplicationPath("/")
-public class RestApplication extends Application {
-
-
-	@Override
-	public Set<Class<?>> getClasses() {
-		final Set<Class<?>> resources = new HashSet<>();
-
-
-		// SWAGGER endpoints
-		resources.add(OpenApiResource.class);
-		resources.add(PersonResource.class);
-        //NEW LINE TO ADD
-		resources.add(SwaggerResource.class);
-
-		return resources;
-	}
-}
+entityManager.clear();          // avant find
+entityManager.refresh(entity);  // après lecture
 ```
 
-Restart your server and access to http://localhost:8080/api/, you should access to a swagger ui instance that provides documentation on your api. 
+### Sérialisation LocalDateTime
+`JacksonConfig` accepte les deux formats envoyés par Angular (`HH:mm` et `HH:mm:ss`) :
+```java
+DateTimeFormatter flexibleFormatter = new DateTimeFormatterBuilder()
+    .appendPattern("yyyy-MM-dd'T'HH:mm")
+    .optionalStart().appendPattern(":ss").optionalEnd()
+    .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
+    .toFormatter();
+```
 
-You can follow this guide to show how you can specialise the documentation through annotations.
+### Suppression en cascade
+- `deleteClient(id)` → supprime les messages du client puis le client
+- `deleteGroupe(id)` → supprime les messages du groupe puis le groupe
 
-https://github.com/swagger-api/swagger-samples/blob/2.0/java/java-resteasy-appclasses/src/main/java/io/swagger/sample/resource/PetResource.java
+### Compatibilité HSQLDB / PostgreSQL
+`Message.content` utilise `@Column(length = 5000)` au lieu de `columnDefinition = "TEXT"` pour rester compatible avec les deux bases.

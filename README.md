@@ -25,7 +25,7 @@ Application CRM (Customer Relationship Management) développée dans le cadre du
 
 ### Diagramme de classes
 
-![Diagramme de classes](classe.png)
+![Diagramme de classes](docs/classe.png)
 
 ### Héritage JPA — SINGLE_TABLE
 
@@ -49,7 +49,7 @@ Account  (discriminant: type_account)
 
 ### Diagramme de cas d'utilisation
 
-![Diagramme de cas d'utilisation](use_case.png)
+![Diagramme de cas d'utilisation](docs/use_case.png)
 
 ---
 
@@ -149,6 +149,14 @@ emf = Persistence.createEntityManagerFactory("dev");
 > ```java
 > emf = Persistence.createEntityManagerFactory("postgres");
 > ```
+
+---
+
+## Documentation complète
+
+Le rapport détaillé du projet est disponible dans : [`TP_SIR.pdf`](TP_SIR.pdf)
+
+Il contient : diagrammes de classes, cas d'utilisation, description des DAOs, endpoints, conformité aux consignes.
 
 ---
 
@@ -305,10 +313,10 @@ entityManager.refresh(entity);  // après lecture
 ### Sérialisation LocalDateTime
 ```java
 DateTimeFormatter flexibleFormatter = new DateTimeFormatterBuilder()
-    .appendPattern("yyyy-MM-dd'T'HH:mm")
-    .optionalStart().appendPattern(":ss").optionalEnd()
-    .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
-    .toFormatter();
+        .appendPattern("yyyy-MM-dd'T'HH:mm")
+        .optionalStart().appendPattern(":ss").optionalEnd()
+        .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
+        .toFormatter();
 ```
 
 ### Suppression en cascade

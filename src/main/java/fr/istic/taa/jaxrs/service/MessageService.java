@@ -33,9 +33,8 @@ public class MessageService {
         return dto;
     }
 
-    // Crée un message vers un client ou un groupe (pas les deux en même temps)
+    // Crée un message vers un client ou un groupe
     public MessageDTO createMessage(MessageDTO dto) {
-
         boolean hasUser   = dto.getUserId()   != null;
         boolean hasGroupe = dto.getGroupeId() != null;
 
@@ -47,11 +46,9 @@ public class MessageService {
             throw new RuntimeException("senderId est obligatoire pour envoyer un message");
 
         Users sender = accountDAO.findUserById(dto.getSenderId());
-        if (sender == null)
-            throw new RuntimeException("Expéditeur (sender) introuvable");
+        if (sender == null) throw new RuntimeException("Expéditeur (sender) introuvable");
 
         Message message;
-
         if (hasUser) {
             Client client = clientDAO.findClientById(dto.getUserId());
             if (client == null) throw new RuntimeException("Client destinataire introuvable");
@@ -64,6 +61,39 @@ public class MessageService {
 
         messageDAO.save(message);
         return toDTO(message);
+    }
+
+    // Récupère un message par son ID
+    public MessageDTO getMessageById(Long id) {
+        Message message = messageDAO.findOne(id);
+        if (message == null) return null;
+        messageDAO.getEntityManager().refresh(message);
+        return toDTO(message);
+    }
+
+    // Met à jour un message existant
+    public MessageDTO updateMessage(Long id, MessageDTO dto) {
+        Message existing = messageDAO.findOne(id);
+        if (existing == null) return null;
+
+        existing.setTitle(dto.getTitle());
+        existing.setContent(dto.getContent());
+        existing.setDateSend(dto.getDateSend());
+
+        // Mise à jour du destinataire
+        if (dto.getUserId() != null) {
+            Client client = clientDAO.findClientById(dto.getUserId());
+            if (client == null) throw new RuntimeException("Client destinataire introuvable");
+            existing.setUser(client);
+            existing.setGroupe(null);
+        } else if (dto.getGroupeId() != null) {
+            Groupe groupe = groupeDAO.findOne(dto.getGroupeId());
+            if (groupe == null) throw new RuntimeException("Groupe introuvable");
+            existing.setGroupe(groupe);
+            existing.setUser(null);
+        }
+
+        return toDTO(messageDAO.update(existing));
     }
 
     // Récupère les messages reçus par un client
@@ -98,7 +128,7 @@ public class MessageService {
         List<Message> messages = messageDAO.findBySender(senderId);
         List<MessageDTO> dtos = new ArrayList<>();
         for (Message message : messages) {
-            messageDAO.getEntityManager().refresh(message);
+            messageDAO.getEntityManager().refresh(message); // évite le cache JPA
             dtos.add(toDTO(message));
         }
         return dtos;

@@ -4,10 +4,7 @@ import fr.istic.taa.jaxrs.dao.classic.AccountDAO;
 import fr.istic.taa.jaxrs.dao.classic.ClientDAO;
 import fr.istic.taa.jaxrs.dao.classic.GroupeDAO;
 import fr.istic.taa.jaxrs.dao.classic.MessageDAO;
-import fr.istic.taa.jaxrs.dto.ClientDTO;
 import fr.istic.taa.jaxrs.dto.DashboardDTO;
-import fr.istic.taa.jaxrs.dto.GroupeDTO;
-import fr.istic.taa.jaxrs.dto.MessageDTO;
 import fr.istic.taa.jaxrs.entity.Client;
 import fr.istic.taa.jaxrs.entity.Groupe;
 import fr.istic.taa.jaxrs.entity.Message;
@@ -68,21 +65,12 @@ public class DashboardServiceTest {
         accountDAO.delete(otherUser);
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────
-
     private void createGroupe(String libelle) {
         Groupe g = new Groupe(libelle);
         g.setColor("#000");
         g.setUser(testUser);
         groupeDAO.save(g);
         groupeIds.add(g.getId());
-    }
-
-    private void createMessage(String title) {
-        // Message de testUser → otherUser
-        Message m = new Message(title, "contenu", LocalDateTime.now(), otherUser, testUser);
-        messageDAO.save(m);
-        messageIds.add(m.getId());
     }
 
     private void createClient(String name) {
@@ -98,7 +86,18 @@ public class DashboardServiceTest {
         clientIds.add(c.getId());
     }
 
-    // ─── Tests stats ─────────────────────────────────────────────────────────
+    private void createMessage(String title) {
+        // Sécurité : s'il n'y a pas encore de client créé, on en crée un.
+        if (clientIds.isEmpty()) {
+            createClient("Temp Client");
+        }
+        Client c = clientDAO.findOne(clientIds.get(0));
+
+        // Le message est lié au Client 'c', envoyé par 'testUser'
+        Message m = new Message(title, "contenu", LocalDateTime.now(), c, testUser);
+        messageDAO.save(m);
+        messageIds.add(m.getId());
+    }
 
     @Test
     public void testGetStats_vide() {
@@ -123,6 +122,7 @@ public class DashboardServiceTest {
 
     @Test
     public void testGetStats_avecMessages() {
+        createClient("Client Alpha");
         createMessage("Message 1");
         createMessage("Message 2");
 
@@ -145,10 +145,10 @@ public class DashboardServiceTest {
     public void testGetStats_complet() {
         createGroupe("G1");
         createGroupe("G2");
-        createMessage("M1");
         createClient("C1");
         createClient("C2");
         createClient("C3");
+        createMessage("M1"); // Va utiliser le C1
 
         DashboardDTO stats = dashboardService.getStats(testUser.getId());
 
@@ -160,11 +160,9 @@ public class DashboardServiceTest {
 
     @Test
     public void testGetStats_isolationEntreUsers() {
-        // Créer des données pour testUser
         createGroupe("Groupe testUser");
         createClient("Client testUser");
 
-        // Vérifier que les stats de otherUser ne comptent pas les données de testUser
         DashboardDTO statsOther = dashboardService.getStats(otherUser.getId());
         assertEquals(0L, statsOther.getNombreGroupes());
         assertEquals(0L, statsOther.getNombreClients());

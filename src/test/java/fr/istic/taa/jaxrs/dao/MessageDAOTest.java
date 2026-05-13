@@ -20,9 +20,8 @@ public class MessageDAOTest {
     private MessageDAO messageDAO;
     private AccountDAO accountDAO;
     private ClientDAO clientDAO;
-    private Users testUser;   // destinataire
-    private Client testClient;
-    private Users testSender; // expéditeur (obligatoire depuis la refonte Message)
+    private Client testClient;   // destinataire (Client au lieu de Users)
+    private Users testSender;    // expéditeur
 
     @Before
     public void setUp() {
@@ -30,29 +29,32 @@ public class MessageDAOTest {
         accountDAO = new AccountDAO();
         clientDAO = new ClientDAO();
 
-        testUser   = new Users("msguser@test.com",   "pass", "Msg",    "User",   false, LocalDateTime.now());
-        testSender = new Users("msgsender@test.com", "pass", "Sender", "User",   false, LocalDateTime.now());
-       // testClient = new Client("Marie Curie", "marie@lab.fr", "0600000001", "Paris", "France",  "F",  );
-        
-        accountDAO.save(testUser);
+        testSender = new Users("msgsender@test.com", "pass", "Sender", "User", false, LocalDateTime.now());
         accountDAO.save(testSender);
+
+        testClient = new Client();
+        testClient.setName("Marie Curie");
+        testClient.setEmail("marie@lab.fr");
+        testClient.setPhone("0600000001");
+        testClient.setLocalisation("Paris");
+        testClient.setCountry("France");
+        testClient.setSexe("F");
+        testClient.setUser(testSender);
+        clientDAO.save(testClient);
     }
 
     @After
     public void tearDown() {
-        // Suppression des messages liés aux deux users
-        for (Message m : messageDAO.findByUserId(testUser.getId()))
+        for (Message m : messageDAO.findByUserId(testClient.getId()))
             messageDAO.delete(m);
-        accountDAO.delete(testUser);
+        clientDAO.delete(testClient);
         accountDAO.delete(testSender);
     }
 
-    // Helper : créer un message user→user
+    // créer un message du user (CRM) vers le client
     private Message msg(String title, String content, LocalDateTime date) {
-        return new Message(title, content, date, testUser, testSender);
+        return new Message(title, content, date, testClient, testSender);
     }
-
-    // ─── save / findOne ──────────────────────────────────────────────────────
 
     @Test
     public void testSaveAndFind() {
@@ -64,21 +66,18 @@ public class MessageDAOTest {
         assertNotNull(found);
         assertEquals("Titre test",  found.getTitle());
         assertEquals("Contenu test", found.getContent());
-        assertEquals(testUser.getId(),   found.getClient().getId());
+        assertEquals(testClient.getId(), found.getClient().getId());
         assertEquals(testSender.getId(), found.getSender().getId());
     }
-
-    // ─── findByUserId (@NamedQuery) ──────────────────────────────────────────
 
     @Test
     public void testFindByUserId() {
         messageDAO.save(msg("Msg 1", "Contenu 1", LocalDateTime.now()));
         messageDAO.save(msg("Msg 2", "Contenu 2", LocalDateTime.now().minusHours(1)));
 
-        List<Message> result = messageDAO.findByUserId(testUser.getId());
+        List<Message> result = messageDAO.findByUserId(testClient.getId());
         assertEquals("2 messages attendus", 2, result.size());
 
-        // Vérifie le tri DESC par dateSend → le plus récent en premier
         assertTrue(
                 result.get(0).getDateSend().isAfter(result.get(1).getDateSend())
                         || result.get(0).getDateSend().isEqual(result.get(1).getDateSend())
@@ -87,21 +86,20 @@ public class MessageDAOTest {
 
     @Test
     public void testFindByUserId_empty() {
-        Users emptyUser = new Users("empty@test.com", "p", "Empty", "User", false, LocalDateTime.now());
-        accountDAO.save(emptyUser);
+        Client emptyClient = new Client();
+        emptyClient.setName("Empty Client");
+        emptyClient.setUser(testSender);
+        clientDAO.save(emptyClient);
 
-        List<Message> result = messageDAO.findByUserId(emptyUser.getId());
+        List<Message> result = messageDAO.findByUserId(emptyClient.getId());
         assertTrue(result.isEmpty());
 
-        accountDAO.delete(emptyUser);
+        clientDAO.delete(emptyClient);
     }
-
-    // ─── findByTitle (@NamedQuery) ───────────────────────────────────────────
 
     @Test
     public void testFindByTitle_exact() {
         messageDAO.save(msg("Bonjour monde", "contenu", LocalDateTime.now()));
-
         List<Message> result = messageDAO.findByTitle("Bonjour monde");
         assertFalse(result.isEmpty());
     }
@@ -109,7 +107,6 @@ public class MessageDAOTest {
     @Test
     public void testFindByTitle_partiel() {
         messageDAO.save(msg("Rapport mensuel", "contenu", LocalDateTime.now()));
-
         List<Message> result = messageDAO.findByTitle("mensuel");
         assertFalse(result.isEmpty());
     }
@@ -117,12 +114,9 @@ public class MessageDAOTest {
     @Test
     public void testFindByTitle_caseInsensitive() {
         messageDAO.save(msg("Alerte Système", "contenu", LocalDateTime.now()));
-
         List<Message> result = messageDAO.findByTitle("alerte système");
         assertFalse("La recherche doit être insensible à la casse", result.isEmpty());
     }
-
-    // ─── findRecentMessages (JPQL avec setMaxResults) ────────────────────────
 
     @Test
     public void testFindRecentMessages() {
@@ -138,8 +132,6 @@ public class MessageDAOTest {
         );
     }
 
-    // ─── countSentByUserId ───────────────────────────────────────────────────
-
     @Test
     public void testCountSentByUserId() {
         messageDAO.save(msg("Sent 1", "c1", LocalDateTime.now()));
@@ -148,8 +140,6 @@ public class MessageDAOTest {
         long count = messageDAO.countSentByUserId(testSender.getId());
         assertTrue("L'expéditeur doit avoir au moins 2 messages envoyés", count >= 2);
     }
-
-    // ─── update ──────────────────────────────────────────────────────────────
 
     @Test
     public void testUpdate() {
@@ -165,8 +155,6 @@ public class MessageDAOTest {
         assertEquals("Contenu modifié",  found.getContent());
     }
 
-    // ─── deleteById ──────────────────────────────────────────────────────────
-
     @Test
     public void testDeleteById() {
         Message message = msg("To Delete", "contenu", LocalDateTime.now());
@@ -177,17 +165,17 @@ public class MessageDAOTest {
         assertNull(messageDAO.findOne(id));
     }
 
-    // ─── deleteByUser (JPQL bulk delete) ─────────────────────────────────────
-
     @Test
     public void testDeleteByUser() {
+
         messageDAO.save(msg("Del 1", "c", LocalDateTime.now()));
         messageDAO.save(msg("Del 2", "c", LocalDateTime.now()));
 
-        int deleted = messageDAO.deleteByUser(testUser.getId());
+        // On appelle deleteByUser avec l'ID de l'EXPÉDITEUR (testSender)
+        int deleted = messageDAO.deleteByUser(testSender.getId());
         assertEquals("2 messages doivent être supprimés", 2, deleted);
 
-        List<Message> remaining = messageDAO.findByUserId(testUser.getId());
+        List<Message> remaining = messageDAO.findByUserId(testClient.getId());
         assertTrue(remaining.isEmpty());
     }
 }

@@ -20,9 +20,9 @@ public class DashboardService {
         Users user = accountDAO.findUserById(userId);
         if (user == null) throw new RuntimeException("Utilisateur introuvable");
 
-        long nbGroupes  = groupeDAO.countByUserId(userId);   // groupes créés par cet user
-        long nbMessages = messageDAO.countSentByUserId(userId); // messages dont il est l'expéditeur
-        long nbClients  = clientDAO.countByUserId(userId);   // clients liés à cet user
+        long nbGroupes  = groupeDAO.countByUserId(userId);
+        long nbMessages = messageDAO.countSentByUserId(userId);
+        long nbClients  = clientDAO.countByUserId(userId);
 
         return new DashboardDTO(userId, nbGroupes, nbMessages, nbClients);
     }
